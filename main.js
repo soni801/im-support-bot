@@ -1,5 +1,9 @@
 const { Client, Intents } = require("discord.js");
 const { token } = require("./config.json");
+const request = require('request');
+
+let faq;
+request('https://help.yessness.com/assets/json/faq.json', (e, r, b) => faq = b);
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -16,7 +20,7 @@ client.on("interactionCreate", interaction =>
         switch (interaction.commandName)
         {
             case "faq":
-                interaction.reply("ok but i am a bad bot");
+                interaction.reply(faq.substr(0, 2000));
                 break;
         }
     }
