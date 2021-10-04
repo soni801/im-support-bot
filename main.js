@@ -36,7 +36,11 @@ client.on("interactionCreate", interaction =>
                                             name: "Unavailable",
                                             value: "This feature is not yet supported in TempleBot. We suggest using `/faq get` for the time being."
                                         }
-                                    ]
+                                    ],
+                                    timestamp: new Date(),
+                                    footer: {
+                                        text: "TempleOS Help Desk Bot"
+                                    }
                                 }
                             ]
                         });
@@ -55,7 +59,11 @@ client.on("interactionCreate", interaction =>
                                             name: faq[interaction.options.getString("choice")].question,
                                             value: faq[interaction.options.getString("choice")].answer
                                         }
-                                    ]
+                                    ],
+                                    timestamp: new Date(),
+                                    footer: {
+                                        text: "TempleOS Help Desk Bot"
+                                    }
                                 }
                             ]
                         });
