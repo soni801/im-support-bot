@@ -7,6 +7,13 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) => faq = JSO
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
+function getQuestions(including)
+{
+    let response = "";
+    faq.forEach(e => { if (e.question.toLowerCase().includes(including.toLowerCase())) response += `\u2022 ${e.question}\n`; });
+    return response === "" ? "No questions matched your search" : response + "**Use __/faq get__ to get the answer to a question**";
+}
+
 client.once("ready", () =>
 {
     client.user.setActivity("help messages", { type: "LISTENING" });
@@ -33,8 +40,8 @@ client.on("interactionCreate", interaction =>
                                     },
                                     fields: [
                                         {
-                                            name: "Unavailable",
-                                            value: "This feature is not yet supported in TempleBot. We suggest using `/faq get` for the time being."
+                                            name: "Questions matching your search:",
+                                            value: getQuestions(interaction.options.getString("query"))
                                         }
                                     ],
                                     timestamp: new Date(),
