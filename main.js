@@ -15,18 +15,22 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-function getQuestions(including)
+function getQuestions(including, parse = false)
 {
     const response = [];
     faq.forEach(e => { if (e.question.toLowerCase().includes(including.toLowerCase())) response.push(e); });
+    if (parse)
+    {
+        let parsed = "";
+        if (response.length > 0)
+        {
+            response.forEach(e => parsed += `\u2022 ${e.question}\n`);
+            parsed += "**To get the answer to one of these questions, please use the selection menu under or visit [our website](https://help.yessness.com/faq/). You can also use __/faq get__.**";
+        }
+        else parsed = "No frequently asked questions matched your search.";
+        return parsed;
+    }
     return response;
-}
-
-function parseQuestions(array)
-{
-    let response = "";
-    array.forEach(e => response += `\u2022 ${e.question}\n`);
-    return response === "" ? "No questions matched your search" : response + "**Use __/faq get__ to get the answer to a question**";
 }
 
 function selectMenuWithItems(items)
@@ -69,7 +73,7 @@ client.on("interactionCreate", interaction =>
                                     fields: [
                                         {
                                             name: "Questions matching your search:",
-                                            value: parseQuestions(getQuestions(interaction.options.getString("query")))
+                                            value: getQuestions(interaction.options.getString("query"), true)
                                         }
                                     ],
                                     timestamp: new Date(),
