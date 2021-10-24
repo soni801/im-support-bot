@@ -1,17 +1,45 @@
-const { Client, Intents } = require("discord.js");
+const { Client, Intents, MessageActionRow, MessageSelectMenu} = require("discord.js");
 const { token } = require("./config.json");
 const request = require('request');
 
 let faq;
-request('https://help.yessness.com/assets/json/faq.json', (e, r, b) => faq = JSON.parse(b));
+request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
+{
+    faq = JSON.parse(b);
+    faq.forEach(e =>
+    {
+        e.label = e.question;
+        e.value = e.question;
+    });
+});
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 function getQuestions(including)
 {
+    const response = [];
+    faq.forEach(e => { if (e.question.toLowerCase().includes(including.toLowerCase())) response.push(e); });
+    return response;
+}
+
+function parseQuestions(array)
+{
     let response = "";
-    faq.forEach(e => { if (e.question.toLowerCase().includes(including.toLowerCase())) response += `\u2022 ${e.question}\n`; });
+    array.forEach(e => response += `\u2022 ${e.question}\n`);
     return response === "" ? "No questions matched your search" : response + "**Use __/faq get__ to get the answer to a question**";
+}
+
+function selectMenuWithItems(items)
+{
+    return items.length === 0 ? [] : [
+        new MessageActionRow()
+            .addComponents(
+                new MessageSelectMenu()
+                    .setCustomId("selectQuestion")
+                    .setPlaceholder("Select an answer")
+                    .addOptions(items)
+            )
+    ];
 }
 
 client.once("ready", () =>
@@ -41,7 +69,7 @@ client.on("interactionCreate", interaction =>
                                     fields: [
                                         {
                                             name: "Questions matching your search:",
-                                            value: getQuestions(interaction.options.getString("query"))
+                                            value: parseQuestions(getQuestions(interaction.options.getString("query")))
                                         }
                                     ],
                                     timestamp: new Date(),
@@ -49,7 +77,8 @@ client.on("interactionCreate", interaction =>
                                         text: "TempleOS Help Desk Bot"
                                     }
                                 }
-                            ]
+                            ],
+                            components: selectMenuWithItems(getQuestions(interaction.options.getString("query")))
                         });
                         break;
                     case "get":
