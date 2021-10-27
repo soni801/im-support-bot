@@ -13,7 +13,7 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
     });
 });
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 function getQuestions(including, parse = false)
 {
@@ -50,6 +50,35 @@ client.once("ready", () =>
 {
     client.user.setActivity("help messages", { type: "LISTENING" });
     console.log("Ready!");
+});
+
+client.on("messageCreate", message =>
+{
+    if (message.content.toLowerCase().includes("ratio"))
+    {
+        message.delete().then(() => console.log(`Deleted message containing 'ratio' from ${message.author.username} in #${message.channel.name}, ${message.guild.name}`));
+        message.channel.send({
+            embeds: [
+                {
+                    color: 0x57fAf8,
+                    author: {
+                        name: "Stop, bitch",
+                        icon_url: "https://www.freeiconspng.com/thumbs/stop-icon/stop-icon-21.png"
+                    },
+                    fields: [
+                        {
+                            name: "Stop saying ratio",
+                            value: "We do not approve"
+                        }
+                    ],
+                    timestamp: new Date(),
+                    footer: {
+                        text: "TempleOS Help Desk Bot"
+                    }
+                }
+            ]
+        })
+    }
 });
 
 client.on("interactionCreate", interaction =>
