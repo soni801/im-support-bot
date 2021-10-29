@@ -9,7 +9,7 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
     faq.forEach(e =>
     {
         e.label = e.question;
-        e.value = e.question;
+        e.value = faq.indexOf(e).toString();
     });
 });
 
@@ -62,7 +62,7 @@ client.on("messageCreate", message =>
                 {
                     color: 0x57fAf8,
                     author: {
-                        name: "Stop, bitch",
+                        name: "Stop my g",
                         icon_url: "https://www.freeiconspng.com/thumbs/stop-icon/stop-icon-21.png"
                     },
                     fields: [
@@ -81,7 +81,7 @@ client.on("messageCreate", message =>
     }
 });
 
-client.on("interactionCreate", interaction =>
+client.on("interactionCreate", async interaction =>
 {
     if (interaction.isCommand())
     {
@@ -139,6 +139,34 @@ client.on("interactionCreate", interaction =>
                         break;
                 }
                 break;
+        }
+    }
+    else if (interaction.isSelectMenu())
+    {
+        if (interaction.customId === "selectQuestion")
+        {
+            await interaction.deferUpdate();
+            await interaction.message.edit({
+                embeds: [
+                    {
+                        color: 0x57fAf8,
+                        author: {
+                            name: "FAQ Answer",
+                            icon_url: "https://cdn.discordapp.com/avatars/893457764871966729/0624aae7b4adf4cb6cb0cc2aeac23c48.webp"
+                        },
+                        fields: [
+                            {
+                                name: faq[interaction.values[0]].question,
+                                value: faq[interaction.values[0]].answer
+                            }
+                        ],
+                        timestamp: new Date(),
+                        footer: {
+                            text: "TempleOS Help Desk Bot"
+                        }
+                    }
+                ]
+            });
         }
     }
 });
