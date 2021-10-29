@@ -60,20 +60,20 @@ client.on("messageCreate", message =>
         message.channel.send({
             embeds: [
                 {
-                    color: 0x57fAf8,
+                    color: 0xbe1d1d,
                     author: {
                         name: "Stop my g",
-                        icon_url: "https://www.freeiconspng.com/thumbs/stop-icon/stop-icon-21.png"
+                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
                     },
                     fields: [
                         {
-                            name: "Stop saying ratio",
+                            name: "Do not ratio me",
                             value: "We do not approve"
                         }
                     ],
                     timestamp: new Date(),
                     footer: {
-                        text: "TempleOS Help Desk Bot"
+                        text: "2IMITKA Helpdesk Bot"
                     }
                 }
             ]
@@ -94,10 +94,10 @@ client.on("interactionCreate", async interaction =>
                         interaction.reply({
                             embeds: [
                                 {
-                                    color: 0x57fAf8,
+                                    color: 0x4cbfc0,
                                     author: {
                                         name: "FAQ Search",
-                                        icon_url: "https://cdn.discordapp.com/avatars/893457764871966729/0624aae7b4adf4cb6cb0cc2aeac23c48.webp"
+                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
                                     },
                                     fields: [
                                         {
@@ -107,7 +107,7 @@ client.on("interactionCreate", async interaction =>
                                     ],
                                     timestamp: new Date(),
                                     footer: {
-                                        text: "TempleOS Help Desk Bot"
+                                        text: "2IMITKA Helpdesk Bot"
                                     }
                                 }
                             ],
@@ -118,10 +118,10 @@ client.on("interactionCreate", async interaction =>
                         interaction.reply({
                             embeds: [
                                 {
-                                    color: 0x57fAf8,
+                                    color: 0x4cbfc0,
                                     author: {
                                         name: "FAQ Answer",
-                                        icon_url: "https://cdn.discordapp.com/avatars/893457764871966729/0624aae7b4adf4cb6cb0cc2aeac23c48.webp"
+                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
                                     },
                                     fields: [
                                         {
@@ -131,7 +131,7 @@ client.on("interactionCreate", async interaction =>
                                     ],
                                     timestamp: new Date(),
                                     footer: {
-                                        text: "TempleOS Help Desk Bot"
+                                        text: "2IMITKA Helpdesk Bot"
                                     }
                                 }
                             ]
@@ -149,10 +149,10 @@ client.on("interactionCreate", async interaction =>
             await interaction.message.edit({
                 embeds: [
                     {
-                        color: 0x57fAf8,
+                        color: 0x4cbfc0,
                         author: {
                             name: "FAQ Answer",
-                            icon_url: "https://cdn.discordapp.com/avatars/893457764871966729/0624aae7b4adf4cb6cb0cc2aeac23c48.webp"
+                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
                         },
                         fields: [
                             {
@@ -162,7 +162,7 @@ client.on("interactionCreate", async interaction =>
                         ],
                         timestamp: new Date(),
                         footer: {
-                            text: "TempleOS Help Desk Bot"
+                            text: "2IMITKA Helpdesk Bot"
                         }
                     }
                 ]
