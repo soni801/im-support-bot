@@ -15,6 +15,10 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
+// Functions for time documentation
+function doubleDigit(number) { return number.toString().length < 2 ? `0${number}` : number; }
+function time() { const date = new Date(); return `[${doubleDigit(date.getHours())}:${doubleDigit(date.getMinutes())}]`; }
+
 function getQuestions(including, parse = false)
 {
     const response = [];
@@ -49,14 +53,14 @@ function selectMenuWithItems(items)
 client.once("ready", () =>
 {
     client.user.setActivity("help messages", { type: "LISTENING" });
-    console.log("Ready!");
+    console.log(`${time()} Ready!`);
 });
 
 client.on("messageCreate", message =>
 {
     if (message.content.toLowerCase().includes("ratio"))
     {
-        message.delete().then(() => console.log(`Deleted message containing 'ratio' from ${message.author.username} in #${message.channel.name}, ${message.guild.name}`));
+        message.delete().then(() => console.log(`${time()} Deleted message containing 'ratio' from ${message.author.username}#${message.author.discriminator} in #${message.channel.name}, ${message.guild.name}`));
         message.channel.send({
             embeds: [
                 {
@@ -115,7 +119,7 @@ client.on("interactionCreate", async interaction =>
                         });
                         break;
                     case "get":
-                        interaction.reply({
+                        interaction.reply({ // This WILL break if the deploy script somehow gets an empty faq array
                             embeds: [
                                 {
                                     color: 0x4cbfc0,
@@ -140,6 +144,7 @@ client.on("interactionCreate", async interaction =>
                 }
                 break;
         }
+        console.log(`${time()} Responded to command ${interaction.commandName} in #${interaction.channel.name}, ${interaction.guild.name}`);
     }
     else if (interaction.isSelectMenu())
     {
@@ -171,4 +176,4 @@ client.on("interactionCreate", async interaction =>
     }
 });
 
-client.login(token).then(() => console.log("Successfully logged in"));
+client.login(token).then(() => console.log(`${time()} Successfully logged in`));
