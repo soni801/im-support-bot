@@ -159,8 +159,7 @@ client.on("interactionCreate", async interaction =>
                     case "create":
                         //  Generate ticket ID
                         const data = JSON.parse(fs.readFileSync("./data.json", "utf8"));
-                        data.ticketAmount += 1;
-                        const ticketID = data.ticketAmount;
+                        const ticketID = ++data.ticketAmount;
                         fs.writeFile("./data.json", JSON.stringify(data), e => { if (e) { console.error(e); } });
 
                         // Create channel
