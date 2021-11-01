@@ -13,6 +13,10 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
     });
 });
 
+// If a message includes any of these words, delete it
+// Short list of homoglyphs: https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
+const blocklist = ["ratio", "ratiо", "ratiο", "ratiօ"];
+
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 // Functions for time documentation
@@ -58,31 +62,36 @@ client.once("ready", () =>
 
 client.on("messageCreate", message =>
 {
-    if (message.content.toLowerCase().includes("ratio"))
+    blocklist.forEach(e =>
     {
-        message.delete().then(() => console.log(`${time()} Deleted message containing 'ratio' from ${message.author.username}#${message.author.discriminator} in #${message.channel.name}, ${message.guild.name}`));
-        message.channel.send({
-            embeds: [
-                {
-                    color: 0xbe1d1d,
-                    author: {
-                        name: "Stop my g",
-                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
-                    },
-                    fields: [
-                        {
-                            name: "Do not ratio me",
-                            value: "We do not approve"
+        if (message.content.toLowerCase().includes(e.toLowerCase()))
+        {
+            message.delete().then(() => console.log(`${time()} Deleted message containing '${e}' from ${message.author.username}#${message.author.discriminator} in #${message.channel.name}, ${message.guild.name}`));
+            message.channel.send({
+                embeds: [
+                    {
+                        color: 0xbe1d1d,
+                        author: {
+                            name: "Stop my g",
+                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
+                        },
+                        fields: [
+                            {
+                                name: `Do not ${e} me`,
+                                value: `We do not approve
+                                ${message.author} lookin ass`
+                            }
+                        ],
+                        timestamp: new Date(),
+                        footer: {
+                            text: "2IMITKA Helpdesk Bot"
                         }
-                    ],
-                    timestamp: new Date(),
-                    footer: {
-                        text: "2IMITKA Helpdesk Bot"
                     }
-                }
-            ]
-        })
-    }
+                ]
+            })
+        }
+    });
+
 });
 
 client.on("interactionCreate", async interaction =>
