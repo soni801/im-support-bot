@@ -13,6 +13,29 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
     }
 });
 
+const categories = [
+    {
+        name: "HTML",
+        value: "html"
+    },
+    {
+        name: "Styling (CSS)",
+        value: "css"
+    },
+    {
+        name: "JavaScript",
+        value: "js"
+    },
+    {
+        name: "Design",
+        value: "design"
+    },
+    {
+        name: "Other/unspecified",
+        value: "other"
+    }
+];
+
 setTimeout(() =>
 {
     const commands = [
@@ -69,28 +92,7 @@ setTimeout(() =>
                             name: "category",
                             description: "The category of the ticket",
                             required: true,
-                            choices: [
-                                {
-                                    name: "HTML",
-                                    value: "html"
-                                },
-                                {
-                                    name: "Styling (CSS)",
-                                    value: "css"
-                                },
-                                {
-                                    name: "JavaScript",
-                                    value: "js"
-                                },
-                                {
-                                    name: "Design",
-                                    value: "design"
-                                },
-                                {
-                                    name: "Other/unspecified",
-                                    value: "other"
-                                }
-                            ]
+                            choices: categories
                         }
                     ]
                 },
@@ -133,7 +135,8 @@ setTimeout(() =>
                                     type: 3,
                                     name: "category",
                                     description: "The new category of the ticket",
-                                    required: true
+                                    required: true,
+                                    choices: categories
                                 }
                             ]
                         }

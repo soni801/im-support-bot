@@ -152,6 +152,102 @@ client.on("interactionCreate", async interaction =>
                         break;
                 }
                 break;
+            case "ticket":
+                switch (interaction.options.getSubcommand())
+                {
+                    case "create":
+                        interaction.reply({
+                            embeds: [
+                                {
+                                    color: 0x4cbfc0,
+                                    author: {
+                                        name: "Helpdesk Ticket",
+                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                    },
+                                    fields: [
+                                        {
+                                            name: "Ticket created",
+                                            value: "Created a new ticket"
+                                        }
+                                    ],
+                                    timestamp: new Date(),
+                                    footer: {
+                                        text: "2IMITKA Helpdesk Bot"
+                                    }
+                                }
+                            ]
+                        });
+                        break;
+                    case "subject":
+                        interaction.reply({
+                            embeds: [
+                                {
+                                    color: 0x4cbfc0,
+                                    author: {
+                                        name: "Helpdesk Ticket",
+                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                    },
+                                    fields: [
+                                        {
+                                            name: "Modified ticket",
+                                            value: "Successfully changed the subject of ticket"
+                                        }
+                                    ],
+                                    timestamp: new Date(),
+                                    footer: {
+                                        text: "2IMITKA Helpdesk Bot"
+                                    }
+                                }
+                            ]
+                        });
+                        break;
+                    case "category":
+                        interaction.reply({
+                            embeds: [
+                                {
+                                    color: 0x4cbfc0,
+                                    author: {
+                                        name: "Helpdesk Ticket",
+                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                    },
+                                    fields: [
+                                        {
+                                            name: "Modified ticket",
+                                            value: "Successfully changed the category of ticket"
+                                        }
+                                    ],
+                                    timestamp: new Date(),
+                                    footer: {
+                                        text: "2IMITKA Helpdesk Bot"
+                                    }
+                                }
+                            ]
+                        });
+                        break;
+                    case "delete":
+                        interaction.reply({
+                            embeds: [
+                                {
+                                    color: 0x4cbfc0,
+                                    author: {
+                                        name: "Helpdesk Ticket",
+                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                    },
+                                    fields: [
+                                        {
+                                            name: "Ticket deleted",
+                                            value: "Deleted ticket"
+                                        }
+                                    ],
+                                    timestamp: new Date(),
+                                    footer: {
+                                        text: "2IMITKA Helpdesk Bot"
+                                    }
+                                }
+                            ]
+                        });
+                        break;
+                }
         }
         console.log(`${time()} Responded to command ${interaction.commandName} in #${interaction.channel.name}, ${interaction.guild.name}`);
     }
