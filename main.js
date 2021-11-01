@@ -248,27 +248,64 @@ client.on("interactionCreate", async interaction =>
                         });
                         break;
                     case "delete":
-                        interaction.reply({
-                            embeds: [
-                                {
-                                    color: 0x4cbfc0,
-                                    author: {
-                                        name: "Helpdesk Ticket",
-                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
-                                    },
-                                    fields: [
-                                        {
-                                            name: "Ticket deleted",
-                                            value: "Deleted ticket"
+                        // Get channel
+                        const channel = interaction.guild.channels.cache.find(c => c.name === `ticket-${interaction.options.getInteger("id")}`);
+
+                        if (!channel)
+                        {
+                            // Ticket doesnt exist, dont do anything
+                            interaction.reply({
+                                embeds: [
+                                    {
+                                        color: 0x4cbfc0,
+                                        author: {
+                                            name: "Helpdesk Ticket",
+                                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                        },
+                                        fields: [
+                                            {
+                                                name: "Can't delete ticket",
+                                                value: "Ticket doesn't exist"
+                                            }
+                                        ],
+                                        timestamp: new Date(),
+                                        footer: {
+                                            text: "2IMITKA Helpdesk Bot"
                                         }
-                                    ],
-                                    timestamp: new Date(),
-                                    footer: {
-                                        text: "2IMITKA Helpdesk Bot"
                                     }
-                                }
-                            ]
-                        });
+                                ]
+                            });
+                        }
+                        else
+                        {
+                            // Set channel category
+                            const category = interaction.guild.channels.cache.find(c => c.name === "ticket archive" && c.type === "GUILD_CATEGORY");
+                            if (!category) interaction.guild.channels.create("ticket archive", { type: "GUILD_CATEGORY" }).then(c => channel.setParent(c));
+                            else await channel.setParent(category);
+
+                            // Reply to user
+                            interaction.reply({
+                                embeds: [
+                                    {
+                                        color: 0x4cbfc0,
+                                        author: {
+                                            name: "Helpdesk Ticket",
+                                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                        },
+                                        fields: [
+                                            {
+                                                name: "Ticket deleted",
+                                                value: `Successfully deleted ticket #${interaction.options.getInteger("id")}`
+                                            }
+                                        ],
+                                        timestamp: new Date(),
+                                        footer: {
+                                            text: "2IMITKA Helpdesk Bot"
+                                        }
+                                    }
+                                ]
+                            });
+                        }
                         break;
                 }
         }
