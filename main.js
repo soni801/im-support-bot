@@ -1,4 +1,5 @@
 const { Client, Intents, MessageActionRow, MessageSelectMenu} = require("discord.js");
+const fs = require("fs");
 const { token } = require("./config.json");
 const request = require('request');
 
@@ -156,8 +157,13 @@ client.on("interactionCreate", async interaction =>
                 switch (interaction.options.getSubcommand())
                 {
                     case "create":
+                        //  Generate ticket ID
+                        const data = JSON.parse(fs.readFileSync("./data.json", "utf8"));
+                        data.ticketAmount += 1;
+                        const ticketID = data.ticketAmount;
+                        fs.writeFile("./data.json", JSON.stringify(data), e => { if (e) { console.error(e); } });
+
                         // Create channel
-                        const ticketID = 1027;
                         await interaction.guild.channels.create(`ticket-${ticketID}`).then(channel =>
                         {
                             // Set channel category
