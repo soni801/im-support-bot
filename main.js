@@ -156,26 +156,44 @@ client.on("interactionCreate", async interaction =>
                 switch (interaction.options.getSubcommand())
                 {
                     case "create":
-                        interaction.reply({
-                            embeds: [
-                                {
-                                    color: 0x4cbfc0,
-                                    author: {
-                                        name: "Helpdesk Ticket",
-                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
-                                    },
-                                    fields: [
-                                        {
-                                            name: "Ticket created",
-                                            value: "Created a new ticket"
+                        // Create channel
+                        const ticketID = 1027;
+                        await interaction.guild.channels.create(`ticket-${ticketID}`).then(channel =>
+                        {
+                            // Set channel category
+                            const category = interaction.guild.channels.cache.find(c => c.name === "tickets" && c.type === "GUILD_CATEGORY");
+                            if (!category) interaction.guild.channels.create("tickets", { type: "GUILD_CATEGORY" }).then(c => channel.setParent(c));
+                            else channel.setParent(category);
+
+                            // Set channel description
+                            channel.edit({ topic: interaction.options.getString("subject") });
+
+                            // Reply to user
+                            interaction.reply({
+                                embeds: [
+                                    {
+                                        color: 0x4cbfc0,
+                                        author: {
+                                            name: "Helpdesk Ticket",
+                                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                        },
+                                        fields: [
+                                            {
+                                                name: `Ticket #${ticketID} created:`,
+                                                value: interaction.options.getString("subject")
+                                            },
+                                            {
+                                                name: "You will receive support in a private channel.",
+                                                value: `Click [here](https://discord.com/channels/${interaction.guild.id}/${channel.id}) to open it`
+                                            }
+                                        ],
+                                        timestamp: new Date(),
+                                        footer: {
+                                            text: "2IMITKA Helpdesk Bot"
                                         }
-                                    ],
-                                    timestamp: new Date(),
-                                    footer: {
-                                        text: "2IMITKA Helpdesk Bot"
                                     }
-                                }
-                            ]
+                                ]
+                            });
                         });
                         break;
                     case "subject":
