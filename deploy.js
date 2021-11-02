@@ -35,6 +35,7 @@ const categories = [
         value: "other"
     }
 ];
+exports.categories = categories;
 
 setTimeout(() =>
 {

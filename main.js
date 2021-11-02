@@ -170,8 +170,17 @@ client.on("interactionCreate", async interaction =>
                             if (!category) interaction.guild.channels.create("tickets", { type: "GUILD_CATEGORY" }).then(c => channel.setParent(c));
                             else channel.setParent(category);
 
-                            // Set channel description
-                            channel.edit({ topic: interaction.options.getString("subject") });
+                            // Set channel description (topic)
+                            channel.edit({ topic: `Subject: ${interaction.options.getString("subject")} | Category: ${(() =>
+                            {
+                                let result = "Unknown"
+                                require("./deploy.js").categories.forEach((e) =>
+                                {
+                                    console.log(e.value, interaction.options.getString("category"));
+                                    if (e.value === interaction.options.getString("category")) result = e.name;
+                                });
+                                return result;
+                            })()}` });
 
                             // Reply to user
                             interaction.reply({
