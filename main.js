@@ -1,5 +1,5 @@
 const { Client, Intents, MessageActionRow, MessageSelectMenu} = require("discord.js");
-const fs = require("fs");
+//const fs = require("fs");
 const { token } = require("./config.json");
 const request = require('request');
 
@@ -19,10 +19,6 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
 const blocklist = ["ratio", "ratiо", "ratiο", "ratiօ", ":rat:", ":io:", "sus"];
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
-
-// Functions for time documentation
-function doubleDigit(number) { return number.toString().length < 2 ? `0${number}` : number; }
-function time() { const date = new Date(); return `[${doubleDigit(date.getHours())}:${doubleDigit(date.getMinutes())}]`; }
 
 function getQuestions(including, parse = false)
 {
@@ -57,8 +53,8 @@ function selectMenuWithItems(items)
 
 client.once("ready", () =>
 {
-    client.user.setActivity("help messages", { type: "LISTENING" });
-    console.log(`${time()} Ready!`);
+    client.user.setActivity("ratios", { type: "LISTENING" });
+    console.log(`[${new Date().toLocaleString()}] Ready!`);
 });
 
 client.on("messageCreate", message =>
@@ -67,20 +63,20 @@ client.on("messageCreate", message =>
     {
         if (message.content.toLowerCase().includes(e.toLowerCase()))
         {
-            message.delete().then(() => console.log(`${time()} Deleted message containing '${e}' from ${message.author.username}#${message.author.discriminator} in #${message.channel.name}, ${message.guild.name}`));
+            message.delete().then(() => console.log(`[${new Date().toLocaleString()}] Deleted message containing '${e}' from '${message.guild.members.cache.get(message.author.id).displayName}' (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: "${message.content}"`));
             message.channel.send({
                 embeds: [
                     {
                         color: 0xbe1d1d,
                         author: {
-                            name: "Stop my g",
+                            name: "Stop, my g",
                             icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
                         },
                         fields: [
                             {
-                                name: `Do not ${e} me`,
-                                value: `We do not approve
-                                ${message.author} lookin ass`
+                                name: `Do not "${e}" me`,
+                                value: `I do not approve of this
+                                ${message.author} :woozy_face: :gun:`
                             }
                         ],
                         timestamp: new Date(),
@@ -387,4 +383,4 @@ client.on("interactionCreate", async interaction =>
     }*/
 });
 
-client.login(token).then(() => console.log(`${time()} Successfully logged in`));
+client.login(token).then(() => console.log(`[${new Date().toLocaleString()}] Logged in`));
