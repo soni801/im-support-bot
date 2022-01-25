@@ -211,27 +211,64 @@ client.on("interactionCreate", async interaction =>
                         });
                         break;
                     case "subject":
-                        interaction.reply({
-                            embeds: [
-                                {
-                                    color: 0x4cbfc0,
-                                    author: {
-                                        name: "Helpdesk Ticket",
-                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
-                                    },
-                                    fields: [
-                                        {
-                                            name: "Modified ticket",
-                                            value: "Successfully changed the subject of ticket"
+                        // Get channel
+                        const ch = interaction.guild.channels.cache.find(c => c.name === `ticket-${interaction.options.getInteger("id")}`);
+                        console.log(ch.topic);
+
+                        if (!ch)
+                        {
+                            // Ticket doesnt exist, dont do anything
+                            interaction.reply({
+                                embeds: [
+                                    {
+                                        color: 0x4cbfc0,
+                                        author: {
+                                            name: "Helpdesk Ticket",
+                                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                        },
+                                        fields: [
+                                            {
+                                                name: "Can't modify ticket",
+                                                value: "Ticket doesn't exist"
+                                            }
+                                        ],
+                                        timestamp: new Date(),
+                                        footer: {
+                                            text: "2IMITKA Helpdesk Bot"
                                         }
-                                    ],
-                                    timestamp: new Date(),
-                                    footer: {
-                                        text: "2IMITKA Helpdesk Bot"
                                     }
-                                }
-                            ]
-                        });
+                                ]
+                            });
+                        }
+                        else
+                        {
+                            // Set channel description (topic)
+                            console.log(`Subject: ${interaction.options.getString("subject")} ${(() => { for (let i = ch.topic.length - 1; i >= 0; i--) if (ch.topic.charAt(i) === "|") return ch.topic.substr(i); })()}`);
+                            ch.edit({ topic: `Subject: ${interaction.options.getString("subject")} ${(() => { for (let i = ch.topic.length - 1; i >= 0; i--) if (ch.topic.charAt(i) === "|") return ch.topic.substr(i); })()}` });
+
+                            // Reply to user
+                            interaction.reply({
+                                embeds: [
+                                    {
+                                        color: 0x4cbfc0,
+                                        author: {
+                                            name: "Helpdesk Ticket",
+                                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
+                                        },
+                                        fields: [
+                                            {
+                                                name: `Successfully modified ticket #${interaction.options.getInteger("id")}`,
+                                                value: `Subject updated to "${interaction.options.getString("subject")}"`
+                                            }
+                                        ],
+                                        timestamp: new Date(),
+                                        footer: {
+                                            text: "2IMITKA Helpdesk Bot"
+                                        }
+                                    }
+                                ]
+                            });
+                        }
                         break;
                     case "category":
                         interaction.reply({
