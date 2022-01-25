@@ -16,7 +16,7 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
 
 // If a message includes any of these words, delete it
 // Short list of homoglyphs: https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
-const blocklist = ["ratio", "ratiо", "ratiο", "ratiօ"];
+const blocklist = ["ratio", "ratiо", "ratiο", "ratiօ", ":rat:", ":io:", "sus"];
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
