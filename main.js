@@ -15,9 +15,9 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
 });
 
 // If a message includes any of these words, delete it
-// Short list of homoglyphs: https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
-const blocklist = ["ratio", "ratiо", "ratiο", "ratiօ", ":rat:", ":io:", "sus"];
+const blocklist = ["ratio", ":rat:", ":io:", "sus"];
 
+// Create client
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 function getQuestions(including, parse = false)
@@ -59,6 +59,7 @@ client.once("ready", () =>
 
 client.on("messageCreate", message =>
 {
+    // TODO: replace homoglyphs with correct letter before checking message: https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
     blocklist.forEach(e =>
     {
         if (message.content.toLowerCase().includes(e.toLowerCase()))
@@ -383,4 +384,5 @@ client.on("interactionCreate", async interaction =>
     }*/
 });
 
+// Log in
 client.login(token).then(() => console.log(`[${new Date().toLocaleString()}] Logged in`));
