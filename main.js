@@ -97,7 +97,7 @@ client.on("messageCreate", message =>
 
 client.on("interactionCreate", async interaction =>
 {
-    if (interaction.isCommand())
+    /*if (interaction.isCommand())
     {
         switch (interaction.commandName)
         {
@@ -384,7 +384,7 @@ client.on("interactionCreate", async interaction =>
                 ]
             });
         }
-    }
+    }*/
 });
 
 client.login(token).then(() => console.log(`${time()} Successfully logged in`));
