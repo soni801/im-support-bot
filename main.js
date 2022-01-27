@@ -58,7 +58,7 @@ function verifyMessage(message, oldMessage)
     {
         if (message.content.toLowerCase().includes(e.toLowerCase()))
         {
-            message.delete().then(() => console.log(`[${new Date().toLocaleString()}] Deleted message containing '${e}' from '${message.guild.members.cache.get(message.author.id).displayName}' (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: "${message.content}"${oldMessage ? " (edited from \"" + oldMessage.content + "\")" : ""}`));
+            message.delete().then(() => console.log(`[${new Date().toLocaleString()}] Deleted message containing \x1b[32m'${e}'\x1b[0m from '${message.guild.members.cache.get(message.author.id).displayName}' (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
             message.channel.send({
                 embeds: [
                     {
