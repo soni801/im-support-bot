@@ -51,20 +51,14 @@ function selectMenuWithItems(items)
     ];
 }
 
-client.once("ready", () =>
-{
-    client.user.setActivity("ratios", { type: "LISTENING" });
-    console.log(`[${new Date().toLocaleString()}] Ready!`);
-});
-
-client.on("messageCreate", message =>
+function verifyMessage(message, oldMessage)
 {
     // TODO: replace homoglyphs with correct letter before checking message: https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
     blocklist.forEach(e =>
     {
         if (message.content.toLowerCase().includes(e.toLowerCase()))
         {
-            message.delete().then(() => console.log(`[${new Date().toLocaleString()}] Deleted message containing '${e}' from '${message.guild.members.cache.get(message.author.id).displayName}' (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: "${message.content}"`));
+            message.delete().then(() => console.log(`[${new Date().toLocaleString()}] Deleted message containing '${e}' from '${message.guild.members.cache.get(message.author.id).displayName}' (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: "${message.content}"${oldMessage ? " (edited from \"" + oldMessage.content + "\")" : ""}`));
             message.channel.send({
                 embeds: [
                     {
@@ -89,8 +83,17 @@ client.on("messageCreate", message =>
             })
         }
     });
+}
 
+client.once("ready", () =>
+{
+    client.user.setActivity("ratios", { type: "LISTENING" });
+    console.log(`[${new Date().toLocaleString()}] Ready!`);
 });
+
+// Delete messages that contain blocked words
+client.on("messageCreate", m => verifyMessage(m));
+client.on("messageUpdate", (old, m) => verifyMessage(m, old));
 
 client.on("interactionCreate", async interaction =>
 {
