@@ -14,6 +14,9 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
     });
 });
 
+let homoglyphs;
+request("https://gist.githubusercontent.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b/raw/fa2ed09ab6f9b515ab430692b588540748412f5f/some_homoglyphs.json", (e, r, b) => homoglyphs = JSON.parse(b));
+
 // If a message includes any of these words, delete it
 const blocklist = ["ratio", ":rat:", ":io:", "sus"];
 
@@ -53,14 +56,28 @@ function selectMenuWithItems(items)
 
 function verifyMessage(message, oldMessage)
 {
-    // TODO: replace homoglyphs with correct letter before checking message: https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
+    // Store original message for logging
+    const originalMessage = message.content;
+
+    // Replace homoglyphs with original letter
+    for (const originalLetter in homoglyphs)
+    {
+        const substitutes = homoglyphs[originalLetter].toString().replace(/,/g, "");
+        const regex = new RegExp(`[${substitutes}]`, "g");
+        message.content = message.content.replace(regex, originalLetter);
+    }
+
+    // Replace whitespace with nothing
+    message.content = message.content.replace(/\s/g, "");
+
+    // Check if message includes phrase from blocklist
     blocklist.forEach(e =>
     {
         if (message.content.toLowerCase().includes(e.toLowerCase()))
         {
             if (message.type === "DEFAULT")
             {
-                message.delete().then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${message.guild.members.cache.get(message.author.id).displayName}'\x1b[0m (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
+                message.delete().then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${message.guild.members.cache.get(message.author.id).displayName}'\x1b[0m (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${originalMessage}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
                 message.channel.send({
                     embeds: [
                         {
@@ -84,7 +101,7 @@ function verifyMessage(message, oldMessage)
                     ]
                 });
             }
-            else console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m \x1b[31mFailed to delete message in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[31m - Reason: System message\x1b[0m`);
+            else console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m \x1b[31mFailed to delete message in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${originalMessage}"\x1b[31m - Reason: System message\x1b[0m`);
         }
     });
 }
