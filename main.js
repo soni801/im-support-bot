@@ -58,7 +58,7 @@ function verifyMessage(message, oldMessage)
     {
         if (message.content.toLowerCase().includes(e.toLowerCase()))
         {
-            message.delete().then(() => console.log(`[${new Date().toLocaleString()}] Deleted message containing \x1b[32m'${e}'\x1b[0m from '${message.guild.members.cache.get(message.author.id).displayName}' (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
+            message.delete().then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${message.guild.members.cache.get(message.author.id).displayName}'\x1b[0m (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
             message.channel.send({
                 embeds: [
                     {
@@ -88,7 +88,7 @@ function verifyMessage(message, oldMessage)
 client.once("ready", () =>
 {
     client.user.setActivity("ratios", { type: "LISTENING" });
-    console.log(`[${new Date().toLocaleString()}] Ready!`);
+    console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Ready!`);
 });
 
 // Delete messages that contain blocked words
@@ -388,4 +388,4 @@ client.on("interactionCreate", async interaction =>
 });
 
 // Log in
-client.login(token).then(() => console.log(`[${new Date().toLocaleString()}] Logged in`));
+client.login(token).then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Logged in`));
