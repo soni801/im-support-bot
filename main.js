@@ -58,29 +58,33 @@ function verifyMessage(message, oldMessage)
     {
         if (message.content.toLowerCase().includes(e.toLowerCase()))
         {
-            message.delete().then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${message.guild.members.cache.get(message.author.id).displayName}'\x1b[0m (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
-            message.channel.send({
-                embeds: [
-                    {
-                        color: 0xbe1d1d,
-                        author: {
-                            name: "Stop, my g",
-                            icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
-                        },
-                        fields: [
-                            {
-                                name: `Do not "${e}" me`,
-                                value: `I do not approve of this
+            if (message.type === "DEFAULT")
+            {
+                message.delete().then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${message.guild.members.cache.get(message.author.id).displayName}'\x1b[0m (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
+                message.channel.send({
+                    embeds: [
+                        {
+                            color: 0xbe1d1d,
+                            author: {
+                                name: "Stop, my g",
+                                icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
+                            },
+                            fields: [
+                                {
+                                    name: `Do not "${e}" me`,
+                                    value: `I do not approve of this
                                 ${message.author} :woozy_face: :gun:`
+                                }
+                            ],
+                            timestamp: new Date(),
+                            footer: {
+                                text: "2IMITKA Helpdesk Bot"
                             }
-                        ],
-                        timestamp: new Date(),
-                        footer: {
-                            text: "2IMITKA Helpdesk Bot"
                         }
-                    }
-                ]
-            })
+                    ]
+                });
+            }
+            else console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m \x1b[31mFailed to delete message in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${message.content}"\x1b[31m - Reason: System message\x1b[0m`);
         }
     });
 }
