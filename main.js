@@ -1,124 +1,146 @@
-const { Client, Intents, MessageActionRow, MessageSelectMenu} = require("discord.js");
+const {
+	Client,
+	Intents,
+	MessageActionRow,
+	MessageSelectMenu,
+} = require('discord.js');
 //const fs = require("fs");
 const request = require('request');
-const { token } = require("./config.json");
-const homoglyphs = require("./homoglyphs.json");
+const { token } = require('./config.json');
+const homoglyphs = require('./homoglyphs.json');
+const blocklist = require('./blocklist.json');
 
 let faq;
-request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
-{
-    faq = JSON.parse(b);
-    faq.forEach(e =>
-    {
-        e.label = e.question;
-        e.value = faq.indexOf(e).toString();
-    });
+request('https://help.yessness.com/assets/json/faq.json', (e, r, b) => {
+	faq = JSON.parse(b);
+	faq.forEach((e) => {
+		e.label = e.question;
+		e.value = faq.indexOf(e).toString();
+	});
 });
 
-// If a message includes any of these words, delete it
-const blocklist = ["ratio", ":rat:", ":io:", "sus"];
-
 // Create client
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+const client = new Client({
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+});
 
-function getQuestions(including, parse = false)
-{
-    const response = [];
-    faq.forEach(e => { if (e.question.toLowerCase().includes(including.toLowerCase())) response.push(e); });
-    if (parse)
-    {
-        let parsed = "";
-        if (response.length > 0)
-        {
-            response.forEach(e => parsed += `\u2022 ${e.question}\n`);
-            parsed += "**To get the answer to one of these questions, please use the selection menu under or visit [our website](https://help.yessness.com/faq/). You can also use __/faq get__.**";
-        }
-        else parsed = "No frequently asked questions matched your search.";
-        return parsed;
-    }
-    return response;
+function getQuestions(including, parse = false) {
+	const response = [];
+	faq.forEach((e) => {
+		if (e.question.toLowerCase().includes(including.toLowerCase()))
+			response.push(e);
+	});
+	if (parse) {
+		let parsed = '';
+		if (response.length > 0) {
+			response.forEach((e) => (parsed += `\u2022 ${e.question}\n`));
+			parsed +=
+				'**To get the answer to one of these questions, please use the selection menu under or visit [our website](https://help.yessness.com/faq/). You can also use __/faq get__.**';
+		} else parsed = 'No frequently asked questions matched your search.';
+		return parsed;
+	}
+	return response;
 }
 
-function selectMenuWithItems(items)
-{
-    return items.length === 0 ? [] : [
-        new MessageActionRow()
-            .addComponents(
-                new MessageSelectMenu()
-                    .setCustomId("selectQuestion")
-                    .setPlaceholder("Select an answer")
-                    .addOptions(items)
-            )
-    ];
+function selectMenuWithItems(items) {
+	return items.length === 0
+		? []
+		: [
+				new MessageActionRow().addComponents(
+					new MessageSelectMenu()
+						.setCustomId('selectQuestion')
+						.setPlaceholder('Select an answer')
+						.addOptions(items)
+				),
+		  ];
 }
 
-function verifyMessage(message, oldMessage)
-{
-    // Store original message for logging
-    const originalMessage = message.content;
+function verifyMessage(message, oldMessage) {
+	// Store original message for logging
+	const originalMessage = message.content;
 
-    // Replace homoglyphs with original letter
-    for (const originalLetter in homoglyphs)
-    {
-        homoglyphs[originalLetter].forEach(substitute =>
-        {
-            const regex = new RegExp(substitute, "g");
-            message.content = message.content.replace(regex, originalLetter);
-        });
-    }
+	// Replace homoglyphs with original letter
+	for (const originalLetter in homoglyphs) {
+		homoglyphs[originalLetter].forEach((substitute) => {
+			const regex = new RegExp(substitute, 'g');
+			message.content = message.content.replace(regex, originalLetter);
+		});
+	}
 
-    // Remove non-alphanumeric characters from message
-    message.content = message.content.replace(/\W/g, "");
+	// Remove non-alphanumeric characters from message
+	message.content = message.content.replace(/\W/g, '');
 
-    // Check if message includes phrase from blocklist
-    blocklist.forEach(e =>
-    {
-        if (message.content.toLowerCase().includes(e.toLowerCase()))
-        {
-            if (message.type === "DEFAULT")
-            {
-                message.delete().then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${message.guild.members.cache.get(message.author.id).displayName}'\x1b[0m (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${originalMessage}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
-                message.channel.send({
-                    embeds: [
-                        {
-                            color: 0xbe1d1d,
-                            author: {
-                                name: "Stop, my g",
-                                icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
-                            },
-                            fields: [
-                                {
-                                    name: `Do not "${e}" me`,
-                                    value: `I do not approve of this
-                                ${message.author} :woozy_face: :gun:`
-                                }
-                            ],
-                            timestamp: new Date(),
-                            footer: {
-                                text: "2IMITKA Helpdesk Bot"
-                            }
-                        }
-                    ]
-                });
-            }
-            else console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m \x1b[31mFailed to delete message in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${originalMessage}"\x1b[31m - Reason: System message\x1b[0m`);
-        }
-    });
+	// Check if message includes phrase from blocklist
+	blocklist.forEach((e) => {
+		if (message.content.toLowerCase().includes(e.toLowerCase())) {
+			if (message.type === 'DEFAULT') {
+				message
+					.delete()
+					.then(() =>
+						console.log(
+							`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${
+								message.guild.members.cache.get(
+									message.author.id
+								).displayName
+							}'\x1b[0m (${message.author.username}#${
+								message.author.discriminator
+							}) in #${message.channel.name}, ${
+								message.guild.name
+							}: \x1b[32m"${originalMessage}"\x1b[0m${
+								oldMessage
+									? ' (edited from \x1b[32m"' +
+									  oldMessage.content +
+									  '"\x1b[0m)'
+									: ''
+							}`
+						)
+					);
+				message.channel.send({
+					embeds: [
+						{
+							color: 0xbe1d1d,
+							author: {
+								name: 'Stop, my g',
+								icon_url:
+									'https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png',
+							},
+							fields: [
+								{
+									name: `Do not "${e}" me`,
+									value: `I do not approve of this
+                                ${message.author} :woozy_face: :gun:`,
+								},
+							],
+							timestamp: new Date(),
+							footer: {
+								text: '2IMITKA Helpdesk Bot',
+							},
+						},
+					],
+				});
+			} else
+				console.log(
+					`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m \x1b[31mFailed to delete message in #${
+						message.channel.name
+					}, ${
+						message.guild.name
+					}: \x1b[32m"${originalMessage}"\x1b[31m - Reason: System message\x1b[0m`
+				);
+		}
+	});
 }
 
-client.once("ready", () =>
-{
-    client.user.setActivity("ratios", { type: "LISTENING" });
-    console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Ready!`);
+client.once('ready', () => {
+	client.user.setActivity('ratios', { type: 'LISTENING' });
+	console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Ready!`);
 });
 
 // Delete messages that contain blocked words
-client.on("messageCreate", m => verifyMessage(m));
-client.on("messageUpdate", (old, m) => verifyMessage(m, old));
+client.on('messageCreate', (m) => verifyMessage(m));
+client.on('messageUpdate', (old, m) => verifyMessage(m, old));
 
-client.on("interactionCreate", async interaction =>
-{
-    /*if (interaction.isCommand())
+client.on('interactionCreate', async (interaction) => {
+	/*if (interaction.isCommand())
     {
         switch (interaction.commandName)
         {
@@ -409,4 +431,8 @@ client.on("interactionCreate", async interaction =>
 });
 
 // Log in
-client.login(token).then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Logged in`));
+client
+	.login(token)
+	.then(() =>
+		console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Logged in`)
+	);
