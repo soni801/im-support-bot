@@ -1,7 +1,8 @@
 const { Client, Intents, MessageActionRow, MessageSelectMenu} = require("discord.js");
 //const fs = require("fs");
-const { token } = require("./config.json");
 const request = require('request');
+const { token } = require("./config.json");
+const homoglyphs = require("./homoglyphs.json");
 
 let faq;
 request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
@@ -13,9 +14,6 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
         e.value = faq.indexOf(e).toString();
     });
 });
-
-let homoglyphs;
-request("https://gist.githubusercontent.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b/raw/fa2ed09ab6f9b515ab430692b588540748412f5f/some_homoglyphs.json", (e, r, b) => homoglyphs = JSON.parse(b));
 
 // If a message includes any of these words, delete it
 const blocklist = ["ratio", ":rat:", ":io:", "sus"];
@@ -62,9 +60,11 @@ function verifyMessage(message, oldMessage)
     // Replace homoglyphs with original letter
     for (const originalLetter in homoglyphs)
     {
-        const substitutes = homoglyphs[originalLetter].toString().replace(/,/g, "");
-        const regex = new RegExp(`[${substitutes}]`, "g");
-        message.content = message.content.replace(regex, originalLetter);
+        homoglyphs[originalLetter].forEach(substitute =>
+        {
+            const regex = new RegExp(substitute, "g");
+            message.content = message.content.replace(regex, originalLetter);
+        });
     }
 
     // Remove non-alphanumeric characters from message
