@@ -67,8 +67,8 @@ function verifyMessage(message, oldMessage)
         message.content = message.content.replace(regex, originalLetter);
     }
 
-    // Replace whitespace with nothing
-    message.content = message.content.replace(/\s/g, "");
+    // Remove non-alphanumeric characters from message
+    message.content = message.content.replace(/\W/g, "");
 
     // Check if message includes phrase from blocklist
     blocklist.forEach(e =>
