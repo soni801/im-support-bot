@@ -1,2 +1,3 @@
 # temple-bot
- Discord bot for the TempleOS help desk.
+
+Discord bot for misc. tasks in a closed Discord server.
