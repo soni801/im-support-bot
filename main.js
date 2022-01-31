@@ -16,7 +16,7 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
 });
 
 // If a message includes any of these words, delete it
-const blocklist = ["ratio", ":rat:", ":io:", "sus"];
+const blocklist = ["ratio", ":rat:", ":io:", "sus", "mistenksomt"];
 
 // Create client
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
@@ -57,6 +57,9 @@ function verifyMessage(message, oldMessage)
     // Store original message for logging
     const originalMessage = message.content;
 
+    // Make message lowercase
+    message.content = message.content.toLowerCase();
+
     // Replace homoglyphs with original letter
     for (const originalLetter in homoglyphs)
     {
@@ -73,7 +76,7 @@ function verifyMessage(message, oldMessage)
     // Check if message includes phrase from blocklist
     blocklist.forEach(e =>
     {
-        if (message.content.toLowerCase().includes(e.toLowerCase()))
+        if (message.content.includes(e))
         {
             if (message.type === "DEFAULT")
             {
