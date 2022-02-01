@@ -3,6 +3,7 @@ const { Client, Intents, MessageActionRow, MessageSelectMenu} = require("discord
 const request = require('request');
 const { token } = require("./config.json");
 const homoglyphs = require("./homoglyphs.json");
+const blocklist = require("./blocklist.json");
 
 let faq;
 request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
@@ -14,9 +15,6 @@ request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
         e.value = faq.indexOf(e).toString();
     });
 });
-
-// If a message includes any of these words, delete it
-const blocklist = ["ratio", ":rat:", ":io:", "sus", "mistenksomt"];
 
 // Create client
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
