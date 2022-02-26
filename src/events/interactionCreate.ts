@@ -8,9 +8,7 @@ const interactionCreate: event<'interactionCreate'> = async (
   client: Client,
   i: Interaction
 ) => {
-  if (!i.isCommand()) return;
-
-  if (i.isApplicationCommand()) {
+  if (i.isApplicationCommand() && i.isCommand()) {
     await i.deferReply({ ephemeral: true });
 
     switch (i.commandName) {
