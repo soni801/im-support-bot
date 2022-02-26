@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { Client, CommandInteraction } from 'discord.js';
 import { StringOptions } from '../types/slashcommand';
 
 export const ticketCategories: StringOptions[] = [
@@ -90,4 +91,11 @@ export default async function () {
             .setDescription('Show tickets assigned to me or created by me')
         )
     );
+}
+
+export async function handleTicketInteraction(
+  client: Client,
+  i: CommandInteraction
+) {
+  i.editReply('Not implemented yet.');
 }
