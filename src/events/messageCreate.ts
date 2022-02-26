@@ -1,4 +1,5 @@
 import type { event } from '../types/event';
+import { ErrorCodes } from '../util/CommandParser';
 import { CONSTANTS } from '../util/config';
 
 const messageCreate: event<'messageCreate'> = async (client, msg) => {
@@ -13,7 +14,11 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
 
   if (!parsed.success) {
     switch (parsed.code) {
-      case 1:
+      case ErrorCodes.NO_PREFIX:
+      case ErrorCodes.NO_BODY:
+      case ErrorCodes.SPACE_BEFORE_COMMAND:
+      case ErrorCodes.NO_COMMAND:
+      case ErrorCodes.BOT_ACCOUNT:
         client.logger.verbose(parsed.error);
         return;
       default:

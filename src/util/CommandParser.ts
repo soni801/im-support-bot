@@ -52,6 +52,15 @@ export interface ParserOptions {
   ignorePrefixCase: boolean;
 }
 
+export enum ErrorCodes {
+  NONE,
+  BOT_ACCOUNT,
+  NO_PREFIX,
+  NO_BODY,
+  SPACE_BEFORE_COMMAND,
+  NO_COMMAND,
+}
+
 function getArguments(body: string): string[] {
   const args: string[] = [];
   let str = body.trim();
@@ -223,16 +232,19 @@ export default class CommandParser {
     prefix: string | string[],
     options: Partial<ParserOptions> = this.options
   ): ParsedMessage<T> {
-    function fail(error: string, code = 0): FailedParsedMessage<T> {
+    function fail(
+      error: string,
+      code: ErrorCodes = ErrorCodes.NONE
+    ): FailedParsedMessage<T> {
       return { success: false, error, message, code };
     }
 
     const prefixes = Array.isArray(prefix) ? [...prefix] : [prefix];
 
     if (message.author.bot && !options.allowBots)
-      return fail('Message sent by a bot account', 1);
+      return fail('Message sent by a bot account', ErrorCodes.BOT_ACCOUNT);
 
-    if (!message.content) return fail('Message body empty');
+    if (!message.content) return fail('Message body empty', ErrorCodes.NO_BODY);
 
     let matchedPrefix: string | null = null;
     for (const p of prefixes) {
@@ -246,18 +258,18 @@ export default class CommandParser {
       }
     }
 
-    if (!matchedPrefix) return fail('Message does not start with prefix');
+    if (!matchedPrefix) return fail('Message does not start with prefix', ErrorCodes.NO_PREFIX);
 
     let remaining = message.content.slice(matchedPrefix.length);
 
-    if (!remaining) return fail('No body after prefix');
+    if (!remaining) return fail('No body after prefix', ErrorCodes.NO_BODY);
     if (!options.allowSpaceBeforeCommand && /^\s/.test(remaining))
-      return fail('Space before command name');
+      return fail('Space before command name', ErrorCodes.SPACE_BEFORE_COMMAND);
 
     remaining = remaining.trim();
 
     const command = remaining.match(/^[^\s]+/i)?.[0];
-    if (!command) return fail('Could not match a command');
+    if (!command) return fail('Could not match a command', ErrorCodes.NO_COMMAND);
     remaining = remaining.slice(command.length).trim();
 
     const args = getArguments(remaining);
