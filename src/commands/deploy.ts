@@ -12,6 +12,7 @@ import { Routes } from 'discord-api-types/v9';
 import Command, { CommandOptions } from '../util/Command';
 import Logger from '../util/Logger';
 import { token } from '../util/config';
+import INTERACTION_IDS from '../util/INTERACTION_IDS';
 
 export default class deploy extends Command {
   config: CommandOptions = {
@@ -58,27 +59,26 @@ export default class deploy extends Command {
     const actions = [
       new MessageActionRow().addComponents(
         new MessageSelectMenu()
-          .setCustomId('slashcommands')
           .setPlaceholder('Slash Commands')
           .setOptions(slashCommands)
-          .setCustomId('slashCommands')
+          .setCustomId(INTERACTION_IDS.DEPLOY_SELECT)
       ),
       new MessageActionRow().addComponents(
         new MessageButton()
           .setEmoji('✅')
           .setLabel('Deploy')
           .setStyle('PRIMARY')
-          .setCustomId('deploy'),
+          .setCustomId(INTERACTION_IDS.DEPLOY_CONFIRM),
         new MessageButton()
           .setEmoji('❌')
           .setLabel('Cancel')
           .setStyle('SECONDARY')
-          .setCustomId('cancel'),
+          .setCustomId(INTERACTION_IDS.DEPLOY_CANCEL),
         new MessageButton()
           .setEmoji('🔁')
           .setLabel('Reset')
           .setStyle('SECONDARY')
-          .setCustomId('reset')
+          .setCustomId(INTERACTION_IDS.DEPLOY_RESET)
       ),
     ];
 
@@ -94,18 +94,18 @@ export default class deploy extends Command {
         await i.deferUpdate();
 
         switch (i.customId) {
-          case 'deploy':
+          case INTERACTION_IDS.DEPLOY_CONFIRM:
             resolve(i);
             break;
-          case 'cancel':
+          case INTERACTION_IDS.DEPLOY_CANCEL:
             collector.stop();
             reject(i);
             break;
-          case 'reset':
+          case INTERACTION_IDS.DEPLOY_RESET:
             slashCommandsToDeploy.forEach((c) => (c.deploy = false));
             embedField.value = 'none';
             break;
-          case 'slashCommands': {
+          case INTERACTION_IDS.DEPLOY_SELECT: {
             if (!i.isSelectMenu()) break;
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

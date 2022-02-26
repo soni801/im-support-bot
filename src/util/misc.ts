@@ -8,6 +8,7 @@ import {
 } from 'discord.js';
 import Client from './Client';
 import homoglyphs from '../data/homoglyphs.json';
+import INTERACTION_IDS from './INTERACTION_IDS';
 
 /**
  * Ask for confirmation before proceeding
@@ -34,24 +35,25 @@ export async function confirmation(
   message: Message,
   confirmationMessage: string | MessageEmbed,
   options: ConfirmationOptions = {
-    deleteAfterReaction: false,
+    deleteAfter: false,
     deleteButtons: false,
     timeout: 10_000,
   }
 ): Promise<boolean> {
-  const yesReaction = new MessageButton()
+  const yesButton = new MessageButton()
     .setEmoji('✅')
     .setLabel('Yes')
     .setStyle('DANGER')
-    .setCustomId('yes');
-  const noReaction = new MessageButton()
+    .setCustomId(INTERACTION_IDS.CONFIRM_YES);
+  const noButton = new MessageButton()
     .setEmoji('❌')
     .setLabel('No')
     .setStyle('SUCCESS')
-    .setCustomId('no');
+    .setCustomId(INTERACTION_IDS.CONFIRM_NO);
 
-  const buttons = new MessageActionRow().addComponents(yesReaction, noReaction);
-
+  const buttons = new MessageActionRow({
+    components: [yesButton, noButton],
+  });
   const msg = await message.channel.send(
     confirmationMessage instanceof MessageEmbed
       ? {
@@ -69,9 +71,9 @@ export async function confirmation(
 
   return await new Promise<MessageComponentInteraction>((resolve, reject) => {
     collector.on('collect', (i) => {
-      if (i.customId === yesReaction.customId) {
+      if (i.customId === yesButton.customId) {
         resolve(i);
-      } else if (i.customId === noReaction.customId) {
+      } else if (i.customId === noButton.customId) {
         reject(i);
       }
     });
@@ -83,7 +85,8 @@ export async function confirmation(
     });
   })
     .then(async (i) => {
-      if (options.deleteAfterReaction) {
+      i.deferUpdate();
+      if (options.deleteAfter) {
         await msg.delete();
       } else if (options?.confirmMessage) {
         await msg.edit(
@@ -92,11 +95,11 @@ export async function confirmation(
             : { embeds: null, content: options?.confirmMessage }
         );
       }
-      i.deferUpdate();
       return true;
     })
     .catch(async (i: MessageComponentInteraction) => {
-      if (options.deleteAfterReaction) {
+      i.deferUpdate();
+      if (options.deleteAfter) {
         await msg.delete();
       } else if (options?.denyMessage) {
         await msg.edit(
@@ -105,11 +108,12 @@ export async function confirmation(
             : { embeds: null, content: options?.denyMessage }
         );
       }
-      i.deferUpdate();
       return false;
     })
     .finally(() => {
-      if (options.deleteButtons) {
+      if (options.deleteAfter) {
+        msg.delete();
+      } else if (options.deleteButtons) {
         msg.edit({ components: [] });
       }
     });
@@ -219,7 +223,7 @@ export interface ConfirmationOptions {
   /** Edit the message after denying */
   denyMessage?: string | MessageEmbed;
   /** Delete the message after receiving a reaction */
-  deleteAfterReaction?: boolean;
+  deleteAfter?: boolean;
   /** Timeout */
   timeout?: number;
   /** Keep the reactions upon reacting */

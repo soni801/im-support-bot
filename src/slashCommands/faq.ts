@@ -12,6 +12,8 @@ import TurndownService from 'turndown';
 import type { ApiFaqResponse } from '../types/faq';
 import { StringOptions } from '../types/slashcommand';
 import Client from '../util/Client';
+import INTERACTION_IDS from '../util/INTERACTION_IDS';
+import Logger from '../util/Logger';
 
 export async function getFaq() {
   return axios
@@ -19,9 +21,15 @@ export async function getFaq() {
     .then((response) => response.data);
 }
 
+export function faqDiscordFormat(data: ApiFaqResponse[]) {
+  return data.map(
+    ({ question }, index): StringOptions => [question, index.toString()]
+  );
+}
+
 export default async function () {
   const faqGetChoices: StringOptions[] = await getFaq().then((data) =>
-    data.map(({ question }, index) => [question, index.toString()])
+    faqDiscordFormat(data)
   );
 
   return new SlashCommandBuilder()
@@ -62,11 +70,12 @@ export async function handleFaqInteraction(
   i: CommandInteraction
 ) {
   const turndownService = new TurndownService();
+  const faq = await getFaq();
+
+  const logger = new Logger('faqInteraction');
 
   switch (i.options.getSubcommand()) {
     case 'list': {
-      const faq = await getFaq();
-
       const embed = client
         .defaultEmbed()
         .setTitle('FAQ')
@@ -79,14 +88,17 @@ export async function handleFaqInteraction(
       // Create a select menu for the user to select a question, and then edit the embed to show the answer.
       const selectMenu = [
         new MessageActionRow().addComponents(
-          new MessageSelectMenu().setCustomId('faq').setOptions(
-            faq.map(
-              ({ question }, index): MessageSelectOptionData => ({
-                label: `${index + 1}. ${question}`,
-                value: index.toString(),
-              })
+          new MessageSelectMenu()
+            .setOptions(
+              faq.map(
+                ({ question }, index): MessageSelectOptionData => ({
+                  label: `${index + 1}. ${question}`,
+                  value: index.toString(),
+                })
+              )
             )
-          )
+            .setPlaceholder('Select a question')
+            .setCustomId(INTERACTION_IDS.FAQ_SELECT)
         ),
       ];
 
@@ -97,30 +109,62 @@ export async function handleFaqInteraction(
 
       if (!(msg instanceof Message)) return;
 
+      const collectDuration = 10 * 60 * 1000;
+
       const collector = msg.createMessageComponentCollector({
-        time: 10 * 60 * 1000, // 10 minutes
+        time: collectDuration,
       });
 
-      collector.on('collect', async (int) => {
-        if (!int.isSelectMenu()) return;
+      collector
+        .on('collect', async (int) => {
+          if (!int.isSelectMenu()) return;
 
-        int.deferUpdate();
+          int.deferUpdate();
 
-        const faq = await getFaq();
+          const faq = await getFaq();
 
-        const answer = faq[parseInt(int.values[0])];
+          const answer = faq[parseInt(int.values[0])];
 
-        embed.setDescription(
+          embed.setDescription(
+            `**${answer.question}**\n` + turndownService.turndown(answer.answer)
+          );
+
+          await i.editReply({ embeds: [embed] });
+        })
+        .on('end', async () => {
+          i.editReply({
+            components: [],
+          }).catch((e: Error) => {
+            logger.info(
+              `Error while editing FAQ message - ${e.name}: ${e.message}`
+            );
+
+            console.debug(JSON.stringify(e));
+          });
+        });
+
+      break;
+    }
+
+    case 'get': {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const question = i.options.getString('question')!;
+
+      const answer = faq[parseInt(question)];
+
+      if (!answer) {
+        await i.editReply('No question found.');
+        return;
+      }
+
+      const embed = client
+        .defaultEmbed()
+        .setTitle('FAQ')
+        .setDescription(
           `**${answer.question}**\n` + turndownService.turndown(answer.answer)
         );
 
-        await i.editReply({ embeds: [embed] });
-      });
-
-      collector.on('end', async () => {
-        msg.edit({ components: [] });
-      });
-
+      await i.editReply({ embeds: [embed] });
       break;
     }
 
