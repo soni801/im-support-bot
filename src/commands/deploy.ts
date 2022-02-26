@@ -138,41 +138,35 @@ export default class deploy extends Command {
       });
     })
       .then(async () => {
-        if (slashCommandsToDeploy.filter((c) => c.deploy).length === 0) {
-          embed
-            .setDescription('No slash commands selected.')
-            .setColor('YELLOW')
-            .setFields([]);
-        } else {
-          const rest = new REST().setToken(token as string);
+        const rest = new REST().setToken(token as string);
 
-          await rest
-            .put(
-              Routes.applicationGuildCommands(
-                this.client.application.id,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                message.guild!.id
+        await rest
+          .put(
+            Routes.applicationGuildCommands(
+              this.client.application.id,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              message.guild!.id
+            ),
+            {
+              body: this.client.slashCommands.filter(
+                (v) =>
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  slashCommandsToDeploy.find((c) => c.command === v.name)!
+                    .deploy
               ),
-              {
-                body: this.client.slashCommands.filter(
-                  (v) =>
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    slashCommandsToDeploy.find((c) => c.command === v.name)!
-                      .deploy
-                ),
-              }
-            )
-            .then((res) => {
-              embed
-                .setDescription('Successfully deployed commands.')
-                .setColor('GREEN');
-              this.logger.debug(JSON.stringify(res));
-            })
-            .catch((err) => {
-              console.error(err);
-              embed.setDescription('Failed to deploy!').setColor(0xff0000);
-            });
-        }
+            }
+          )
+          .then((res) => {
+            embed
+              .setDescription('Successfully deployed commands.')
+              .setColor('GREEN')
+              .setFields([embedField]);
+            this.logger.debug(JSON.stringify(res));
+          })
+          .catch((err) => {
+            console.error(err);
+            embed.setDescription('Failed to deploy!').setColor(0xff0000);
+          });
       })
       .catch(() => {
         embed.setDescription('Deploy cancelled').setFields([]).setColor('RED');
