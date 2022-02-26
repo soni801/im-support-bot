@@ -1,12 +1,5 @@
-import {
-  Interaction,
-  Message,
-  MessageActionRow,
-  MessageSelectMenu,
-  MessageSelectOptionData,
-} from 'discord.js';
-import TurndownService from 'turndown';
-import { getFaq, handleFaqInteraction } from '../slashCommands/faq';
+import { Interaction } from 'discord.js';
+import { handleFaqInteraction } from '../slashCommands/faq';
 import { handleTicketInteraction } from '../slashCommands/ticket';
 import { event } from '../types/event';
 import Client from '../util/Client';
