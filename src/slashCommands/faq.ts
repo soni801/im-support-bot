@@ -8,12 +8,20 @@ import {
   MessageSelectOptionData,
 } from 'discord.js';
 import TurndownService from 'turndown';
+import Fuse from 'fuse.js';
 
 import type { ApiFaqResponse } from '../types/faq';
 import { StringOptions } from '../types/slashcommand';
 import Client from '../util/Client';
 import INTERACTION_IDS from '../util/INTERACTION_IDS';
 import Logger from '../util/Logger';
+
+const turndownService = new TurndownService();
+const logger = new Logger('faqInteraction');
+const fuseOptions: Fuse.IFuseOptions<ApiFaqResponse> = {
+  keys: ['question', 'answer'],
+  threshold: 0.3,
+};
 
 export async function getFaq() {
   return axios
@@ -69,10 +77,9 @@ export async function handleFaqInteraction(
   client: Client,
   i: CommandInteraction
 ) {
-  const turndownService = new TurndownService();
   const faq = await getFaq();
 
-  const logger = new Logger('faqInteraction');
+  const fuse = new Fuse(faq, fuseOptions);
 
   switch (i.options.getSubcommand()) {
     case 'list': {
@@ -165,6 +172,88 @@ export async function handleFaqInteraction(
         );
 
       await i.editReply({ embeds: [embed] });
+      break;
+    }
+
+    case 'search': {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const query = i.options.getString('query')!;
+
+      const results = fuse.search(query);
+
+      if (results.length === 0) {
+        await i.editReply('No results found.');
+        return;
+      }
+
+      const embed = client
+        .defaultEmbed()
+        .setTitle('FAQ Search')
+        .setDescription(
+          `**${results.length}** results found for **"${query}"**\n\n` +
+            results
+              .map(({ item }, index) => `${index + 1}. ${item.question}`)
+              .join('\n')
+        );
+
+      // Create a select menu for the user to select a question, and then edit the embed to show the answer.
+      const selectMenu = [
+        new MessageActionRow().addComponents(
+          new MessageSelectMenu()
+            .setOptions(
+              results.map(
+                ({ item }, index): MessageSelectOptionData => ({
+                  label: `${index + 1}. ${item.question}`,
+                  value: faq.findIndex((faq) => faq === item).toString(),
+                })
+              )
+            )
+            .setPlaceholder('Select a question')
+            .setCustomId(INTERACTION_IDS.FAQ_SELECT)
+        ),
+      ];
+
+      const msg = await i.editReply({
+        embeds: [embed],
+        components: selectMenu,
+      });
+
+      if (!(msg instanceof Message)) return;
+
+      const collectDuration = 10 * 60 * 1000;
+
+      const collector = msg.createMessageComponentCollector({
+        time: collectDuration,
+      });
+
+      collector
+        .on('collect', async (int) => {
+          if (!int.isSelectMenu()) return;
+
+          int.deferUpdate();
+
+          const faq = await getFaq();
+
+          const answer = faq[parseInt(int.values[0])];
+
+          embed.setDescription(
+            `**${answer.question}**\n` + turndownService.turndown(answer.answer)
+          );
+
+          await i.editReply({ embeds: [embed] });
+        })
+        .on('end', async () => {
+          i.editReply({
+            components: [],
+          }).catch((e: Error) => {
+            logger.info(
+              `Error while editing FAQ message - ${e.name}: ${e.message}`
+            );
+
+            console.debug(JSON.stringify(e));
+          });
+        });
+
       break;
     }
 
