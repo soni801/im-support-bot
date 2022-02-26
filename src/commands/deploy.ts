@@ -137,7 +137,7 @@ export default class deploy extends Command {
         }
       });
     })
-      .then(async (i) => {
+      .then(async () => {
         if (slashCommandsToDeploy.filter((c) => c.deploy).length === 0) {
           embed
             .setDescription('No slash commands selected.')
