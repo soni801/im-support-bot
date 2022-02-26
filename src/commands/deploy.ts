@@ -35,11 +35,18 @@ export default class deploy extends Command {
       value: 'none',
     };
 
+    const warningEmbedField: EmbedFieldData = {
+      name: 'Note: This will overwrite existing commands, removing those not selected',
+      value: 'Select all you want to have active',
+    };
+
     const embed = this.client
       .defaultEmbed()
       .setTitle('Deploying...')
-      .setDescription('Select slash commands to deploy (timeout in 30 seconds)')
-      .setFields([embedField])
+      .setDescription(
+        'Select slash commands to activate (timeout in 5 minutes)'
+      )
+      .setFields([embedField, warningEmbedField])
       .setTimestamp();
 
     const slashCommands = this.client.slashCommands.map((builder) => ({
@@ -87,7 +94,9 @@ export default class deploy extends Command {
       components: actions,
     });
 
-    const collector = msg.createMessageComponentCollector({});
+    const collector = msg.createMessageComponentCollector({
+      time: 1000 * 60 * 5,
+    });
 
     await new Promise<MessageComponentInteraction>((resolve, reject) => {
       collector.on('collect', async (i) => {
@@ -126,7 +135,7 @@ export default class deploy extends Command {
 
         if (embedField.value === '') embedField.value = 'none';
 
-        embed.setFields([embedField]);
+        embed.setFields([embedField, warningEmbedField]);
 
         await msg.edit({ embeds: [embed] });
       });
