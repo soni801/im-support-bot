@@ -36,6 +36,7 @@ export const CONSTANTS = {
     default: 'BLURPLE',
     warning: 'DARK_RED',
   } as { [key: string]: ColorResolvable },
+  wordBlockEnabled: false,
 };
 
 export const clientOptions: ClientOptions = {
