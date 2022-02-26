@@ -21,28 +21,26 @@ export default class Client<
   slashCommands: Collection<string, SlashCommandBuilder> = new Collection();
 
   logger = new Logger(Client.name);
-  admins = new Set<string>();
+  admins = new Set<string>(['279692618391093248']);
 
-  parser: CommandParser;
+  parser: CommandParser = new CommandParser(this, {
+    allowBots: false,
+    allowSpaceBeforeCommand: false,
+    ignorePrefixCase: false,
+  });
 
   constructor(options: ClientOptions) {
     super(options);
 
-    this.parser = new CommandParser(this, {
-      allowBots: false,
-      allowSpaceBeforeCommand: false,
-      ignorePrefixCase: false,
-    });
-
-    this.admins.add('279692618391093248');
-
-    this.loadCommands('../commands');
-    this.loadEvents('../events');
-    this.loadSlashCommands('../slashCommands');
-
     this.on('error', (err) => {
       console.error(err);
     });
+
+    Promise.all([
+      this.loadCommands('../commands'),
+      this.loadEvents('../events'),
+      this.loadSlashCommands('../slashCommands'),
+    ]);
   }
 
   /**
