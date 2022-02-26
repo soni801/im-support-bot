@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+
+    "target": "ES2021",
+    "lib": ["ES2020", "DOM"],
+    "module": "CommonJS",
+
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": false,
+
+    "declaration": false,
+    "pretty": true,
+    "strict": true,
+
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "exclude": ["node_modules", "_dev", "dist", "coverage"],
+  "include": ["./src/**/*", ".eslintrc.js"]
+}
