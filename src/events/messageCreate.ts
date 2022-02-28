@@ -8,6 +8,8 @@ import { replaceHomoglyphs } from '../util/misc';
 const logger = new Logger('messageCreate');
 
 const messageCreate: event<'messageCreate'> = async (client, msg) => {
+  if (msg.webhookId) return;
+
   const prefixes = [CONSTANTS.PREFIX];
 
   msg.content = replaceHomoglyphs(msg.content);
