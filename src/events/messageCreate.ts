@@ -28,7 +28,8 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
       case ErrorCodes.SPACE_BEFORE_COMMAND:
       case ErrorCodes.NO_COMMAND:
       case ErrorCodes.BOT_ACCOUNT:
-        client.logger.debug(parsed.error);
+        if (msg.author.id !== client.user?.id)
+          client.logger.debug(parsed.error);
         break;
       default:
         client.logger.warn(parsed.error);
