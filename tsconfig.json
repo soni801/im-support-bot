@@ -16,15 +16,18 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "emitDecoratorMetadata": true,
     "sourceMap": false,
+    "incremental": true,
 
     "declaration": false,
     "pretty": true,
     "strict": true,
+    "strictPropertyInitialization": false,
 
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": ".",
   },
   "exclude": ["node_modules", "_dev", "dist", "coverage"],
-  "include": ["./src/**/*", ".eslintrc.js"]
+  "include": ["./src/**/*", "./ormconfig.ts"]
 }

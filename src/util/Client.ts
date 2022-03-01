@@ -7,10 +7,14 @@ import {
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { readdir } from 'fs/promises';
 import { basename, resolve } from 'path';
+import { Connection } from 'typeorm';
+
 import Command from './Command';
 import CommandParser from './CommandParser';
 import { CONSTANTS } from './config';
 import Logger from './Logger';
+import ormconfig from '../../ormconfig';
+import Guild from '../entities/Guild.entity';
 
 export default class Client<
   T extends boolean = boolean
@@ -29,6 +33,7 @@ export default class Client<
     ignorePrefixCase: false,
   });
 
+  db = new Connection(ormconfig);
   constructor(options: ClientOptions) {
     super(options);
 
@@ -36,11 +41,13 @@ export default class Client<
       console.error(err);
     });
 
-    Promise.all([
-      this.loadCommands('../commands'),
-      this.loadEvents('../events'),
-      this.loadSlashCommands('../slashCommands'),
-    ]);
+    this.connectDb().then(() =>
+      Promise.all([
+        this.loadCommands('../commands'),
+        this.loadEvents('../events'),
+        this.loadSlashCommands('../slashCommands'),
+      ])
+    );
   }
 
   /**
@@ -138,5 +145,38 @@ export default class Client<
     }
 
     this.logger.info(`Loaded ${this.slashCommands.size} slash commands.`);
+  }
+
+  async connectDb() {
+    this.logger.verbose('Connecting to database...');
+
+    await this.db.connect().catch((err: Error) => {
+      this.logger.error(`Failed to connect to database: ${err.message}`);
+      Promise.reject(err);
+    });
+
+    this.logger.info(`Connected to database ${this.db.options.database}.`);
+  }
+
+  async syncDb() {
+    const guildRepository = this.db.getRepository(Guild);
+
+    // Array of functions that check if a guild exists in the database and if not, create it
+    const guilds = this.guilds.cache.map(
+      (guild) => async () =>
+        await guildRepository
+          .findOne({ where: { guildId: guild.id } })
+          .then(async (g) => {
+            if (!g) {
+              await guildRepository.save([
+                new Guild({
+                  guildId: guild.id,
+                }),
+              ]);
+            }
+          })
+    );
+
+    await Promise.all(guilds);
   }
 }

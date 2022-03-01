@@ -20,6 +20,8 @@ start();
 function exit(..._: any[]) {
   client.logger.warn('SIGQUIT received, exiting...');
   client.destroy();
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  client.db.close().catch(() => {});
   console.log('Exited at ' + new Date());
 }
 

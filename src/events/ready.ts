@@ -13,6 +13,10 @@ const ready: event<'ready'> = async (client) => {
   console.log(`Users (cached): ${client.users.cache.size}`);
   console.log(`Channels: ${client.channels.cache.size}`);
   console.log('====================');
+
+  client.logger.info('Syncing guilds and database...');
+  await client.syncDb();
+  client.logger.info('Synced guilds and database.');
 };
 
 export default ready;
