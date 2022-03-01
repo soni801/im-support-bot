@@ -6,6 +6,8 @@ import {
   MessageComponentInteraction,
   MessageEmbed,
 } from 'discord.js';
+import { findBestMatch } from 'string-similarity';
+
 import Client from './Client';
 import homoglyphs from '../data/homoglyphs.json';
 import INTERACTION_IDS from './INTERACTION_IDS';
@@ -19,7 +21,7 @@ import INTERACTION_IDS from './INTERACTION_IDS';
  * @param {string | MessageEmbed} [options.denyMessage] Edit the message upon denial
  * @param {number} options.time Timeout
  * @param {boolean} [options.keepReactions] Keep reactions after reacting
- * @param {boolean} [options.deleteAfterReaction] Delete the message after reaction (takes priority over all other messages)
+ * @param {boolean} [options.deleteAfter] Delete the message after reaction (takes priority over all other messages)
  * @example
  * const confirmationMessage: string = 'Are you sure you would like to stop the bot?'
  * const options: ConfirmationOptions = {
@@ -86,9 +88,7 @@ export async function confirmation(
   })
     .then(async (i) => {
       i.deferUpdate();
-      if (options.deleteAfter) {
-        await msg.delete();
-      } else if (options?.confirmMessage) {
+      if (options?.confirmMessage) {
         await msg.edit(
           options?.confirmMessage instanceof MessageEmbed
             ? { embeds: [options?.confirmMessage], content: null }
@@ -99,9 +99,7 @@ export async function confirmation(
     })
     .catch(async (i: MessageComponentInteraction) => {
       i.deferUpdate();
-      if (options.deleteAfter) {
-        await msg.delete();
-      } else if (options?.denyMessage) {
+      if (options?.denyMessage) {
         await msg.edit(
           options?.denyMessage instanceof MessageEmbed
             ? { embeds: [options?.denyMessage], content: null }
@@ -217,6 +215,94 @@ export async function getLevel(user: GuildMember): Promise<number> {
   return 0;
 }
 
+export function truncate(str: string, maxLength: number): string {
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength) + '...';
+}
+
+/**
+ * Capture stdout and stderr while executing a function
+ * @param {Function} callback The callback function to execute
+ * @returns {Promise<CapturedOutput>} stdout, stderr and callback outputs
+ */
+export async function captureOutput(
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  callback: Function
+): Promise<{ stdout: string; stderr: string; callbackOutput?: any }> {
+  return await new Promise((resolve, reject) => {
+    const oldProcess = { ...process };
+    let stdout = '';
+    let stderr = '';
+
+    // overwrite stdout write function
+    process.stdout.write = (str: string) => {
+      stdout += str;
+      return true;
+    };
+
+    // overwrite stderr write function
+    process.stderr.write = (str: string) => {
+      stderr += str;
+      return true;
+    };
+
+    try {
+      const c = callback();
+
+      // @ts-expect-error - cuz reasons im not really sure
+      delete process.stdout.write;
+      process.stdout.write = oldProcess.stdout.write;
+
+      // @ts-expect-error - cuz reasons im not really sure
+      delete process.stderr.write;
+      process.stderr.write = oldProcess.stderr.write;
+
+      return c
+        .catch((c: Error) => reject({ stdout, stderr, callbackOutput: c })) // eslint-disable-line prefer-promise-reject-errors
+        .then((callbackOutput: any) =>
+          resolve({ stdout, stderr, callbackOutput })
+        );
+    } catch (error) {
+      // @ts-expect-error - cuz reasons im not really sure
+      delete process.stdout.write;
+      process.stdout.write = oldProcess.stdout.write;
+
+      // @ts-expect-error - cuz reasons im not really sure
+      delete process.stderr.write;
+      process.stderr.write = oldProcess.stderr.write;
+      return reject({ stdout, stderr, callbackOutput: error }); // eslint-disable-line prefer-promise-reject-errors
+    }
+  });
+}
+
+/**
+ * Find the closest matching string from an array
+ * @param {string} search The string to compare
+ * @param {string[]} mainStrings The strings to find the closest match in
+ * @returns {string | null}
+ * @example
+ * const search: string = 'Admin'
+ * const strings: string[] = ['Administrator', 'Developer', 'Moderator']
+ * const options: MatchStringOptions = { minRating: 0.4 }
+ *
+ * const match: string | null = matchString(search, strings, options)
+ * // match: 'Administrator'
+ */
+export function matchString(
+  search: string,
+  mainStrings: string[],
+  ops?: MatchStringOptions
+): string | null {
+  const {
+    bestMatchIndex,
+    bestMatch: { rating },
+  } = findBestMatch(search, mainStrings);
+
+  if (rating < (ops?.minRating ?? 0.5)) return null;
+
+  return mainStrings[bestMatchIndex];
+}
+
 export interface ConfirmationOptions {
   /** Edit the message after confirming */
   confirmMessage?: string | MessageEmbed;
@@ -228,4 +314,9 @@ export interface ConfirmationOptions {
   timeout?: number;
   /** Keep the reactions upon reacting */
   deleteButtons?: boolean;
+}
+
+interface MatchStringOptions {
+  /** Only return a string if it is a certain % similar */
+  minRating?: number;
 }

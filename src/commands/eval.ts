@@ -1,8 +1,23 @@
-import { Message, MessageEmbed } from 'discord.js';
+import { Message } from 'discord.js';
+import * as Discord from 'discord.js';
 import { inspect } from 'util';
-import Command, { CommandOptions } from '../util/Command';
+import { Context, runInNewContext, RunningScriptOptions } from 'vm';
+import chalk from 'chalk';
+import axios from 'axios';
+import {
+  confirmation,
+  parseCodeblock,
+  captureOutput,
+  matchString,
+} from '../util/misc';
 import Logger from '../util/Logger';
-import { clean, parseCodeblock, wrapCodeblock } from '../util/misc';
+import Command, { CommandOptions } from '../util/Command';
+
+const options = {
+  callback: false,
+  stdout: true,
+  stderr: true,
+};
 
 export default class extends Command {
   config: CommandOptions = {
@@ -10,66 +25,289 @@ export default class extends Command {
     aliases: ['ev'],
     help: {
       hidden: true,
+      shortDescription: 'Evaluates code',
+      description:
+        'Evaluates code, and returns the result.\nThis command is only available to the bot owner.',
+      category: 'Owner',
+      usage: '<code> | ```<code>```',
     },
     level: 3,
+    permissions: { bot: ['EMBED_LINKS'] },
   };
 
   logger = new Logger('eval');
 
+  // @ts-expect-error ts(7030) - Not all code paths return a value.
   async run(message: Message, ...args: string[]) {
-    const startTime: number = Date.now();
-    let code = parseCodeblock(args.join(' '));
+    if (!args[0])
+      return await message.reply(':x: You must provide code to execute!');
 
-    let embed: MessageEmbed = this.client.defaultEmbed();
+    const script: string = parseCodeblock(args.join(' '));
 
-    try {
-      let evaled = await eval(code);
-
-      if (typeof evaled !== 'string') {
-        evaled = inspect(evaled);
+    const confirm = await confirmation(
+      message,
+      this.client
+        .defaultEmbed()
+        .setTitle(
+          ':warning: Are you sure you would like to execute the following code:'
+        )
+        .setDescription('```js\n' + script + '```'),
+      {
+        deleteAfter: true,
       }
+    );
 
-      /* This checks if the input and output are over 1024 characters long
-            (1016 characters with codeblock), and if so, it replaces them,
-            in order to prevent the embed from raising an uncaught exception. */
-      if (code.length > 1016) {
-        code =
-          '"The input cannot be displayed as it is longer than 1024 characters."';
-      }
-      if (evaled.length > 1016) {
-        console.log('Eval Output:\n', clean(evaled));
-        evaled =
-          '"The output cannot be displayed as it is longer than 1024 characters. Please check the console."';
-      }
+    if (!confirm) return;
 
-      embed = embed
-        .setColor('GREEN')
-        .setTitle('Evaluation Successful')
-        .addFields(
-          { name: '📥 Input', value: wrapCodeblock(code) },
-          { name: '📤 Output', value: wrapCodeblock(clean(evaled)) }
-        );
-    } catch (error: any) {
-      this.logger.error('Eval error:');
-      console.error(error);
+    const context: Context = {
+      client: this.client,
+      message,
+      args,
+      Discord,
+      console,
+      require,
+      process,
+      global,
+    };
 
-      embed = embed
-        .setColor('RED')
-        .setTitle('Evaluation Error')
-        .addFields(
-          { name: '📥 Input', value: wrapCodeblock(code) },
+    const scriptOptions: RunningScriptOptions = {
+      filename: `${message.author.id}@${message.guild?.id}`,
+      timeout: 60000,
+      displayErrors: true,
+    };
+
+    let start: number = Date.now();
+    let result = execute(
+      `'use strict'; (async () => { ${script} })()`,
+      context,
+      scriptOptions
+    );
+    let end: number = Date.now();
+
+    if (
+      !(await result)?.stdout &&
+      !(await result)?.callbackOutput &&
+      !(await result)?.stderr
+    ) {
+      if (
+        !(await confirmation(
+          message,
+          ':warning: Nothing was returned. Would you like to run the code again with implicit return?',
           {
-            name: '❌ Error message',
-            value: wrapCodeblock(error.message),
+            deleteAfter: true,
           }
+        ))
+      )
+        return;
+      else {
+        start = Date.now();
+        result = execute(
+          `'use strict'; (async () => ${script} )()`,
+          context,
+          scriptOptions
         );
-    } finally {
-      embed = embed.setTimestamp().setFooter({
-        text: `Execution time: ${Math.round(Date.now() - startTime)}ms`,
-        iconURL: this.client.user.displayAvatarURL({ format: 'png' }),
+        end = Date.now();
+      }
+    }
+
+    result.then(async (res) => {
+      if (
+        (options.stdout && res?.stdout) ||
+        (options.stderr && res?.stderr) ||
+        (options.callback && res?.callbackOutput)
+      ) {
+        console.log(
+          chalk`{red {strikethrough -}[ {bold Eval Output} ]{strikethrough ---------}}`
+        );
+        if (options.callback && res.callbackOutput)
+          console.log(res.callbackOutput);
+
+        if (options.stdout && res.stdout) {
+          console.log(
+            chalk`{red {strikethrough -}[ {bold stdout} ]{strikethrough --------------}}`
+          );
+          console.log(res.stdout);
+        }
+        if (options.stderr && res.stderr) {
+          console.log(
+            chalk`{red {strikethrough -}[ {bold stderr} ]{strikethrough --------------}}`
+          );
+          console.error(res.stderr);
+        }
+        console.log(
+          chalk`{red {strikethrough -}[ {bold End} ]{strikethrough -----------------}}`
+        );
+      }
+
+      if (
+        matchString(this.client.token, inspect(res.callbackOutput).split(' '), {
+          minRating: 0.6,
+        }) ||
+        matchString(this.client.token, inspect(res.stdout).split(' '), {
+          minRating: 0.6,
+        }) ||
+        matchString(this.client.token, inspect(res.stderr).split(' '), {
+          minRating: 0.6,
+        })
+      ) {
+        if (
+          !(await confirmation(
+            message,
+            ':bangbang: The bot token is likely located somewhere in the output of your code. Would you like to display the output?',
+            {
+              deleteAfter: true,
+            }
+          ))
+        )
+          return;
+      }
+      const embed: Discord.MessageEmbed = await generateEmbed(script, res, {
+        start,
+        end,
       });
 
-      message.channel.send({ embeds: [embed] });
-    }
+      const msg = await message.channel.send({ embeds: [embed] });
+
+      if (
+        !(await confirmation(
+          message,
+          ':information_source: Would you like to post the output of this command on hastebin?',
+          {
+            deleteAfter: true,
+          }
+        ))
+      )
+        return;
+
+      const evalOutput: string[] = [];
+
+      if (res.callbackOutput) {
+        evalOutput.push(
+          '-[ Eval Output ]---------',
+          typeof res.callbackOutput === 'string'
+            ? res.callbackOutput
+            : inspect(res.callbackOutput)
+        );
+      }
+
+      if (res.stdout) {
+        evalOutput.push(
+          '-[ stdout ]--------------',
+          typeof res.stdout === 'string' ? res.stdout : inspect(res.stdout)
+        );
+      }
+
+      if (res.stderr) {
+        evalOutput.push(
+          '-[ stderr ]--------------',
+          typeof res.stderr === 'string' ? res.stderr : inspect(res.stderr)
+        );
+      }
+
+      const { data: body } = await axios.post(
+        'https://hastebin.com/documents',
+        evalOutput.join('\n')
+      );
+
+      embed.addField(
+        ':notepad_spiral: Hastebin',
+        `https://hastebin.com/${body.key as string}`
+      );
+
+      await msg.edit({
+        embeds: [embed],
+      });
+    });
   }
+}
+
+async function execute(
+  code: string,
+  context: Context,
+  options: object
+): Promise<{ stdout: string; stderr: string; callbackOutput?: any }> {
+  return await new Promise((resolve) => {
+    try {
+      captureOutput(() => runInNewContext(code, context, options))
+        .then(resolve)
+        .catch(resolve);
+    } catch (err: any) {
+      resolve(err);
+    }
+  });
+}
+
+async function generateEmbed(
+  code: string,
+  outs: any,
+  { start, end }: { start: number; end: number }
+): Promise<Discord.MessageEmbed> {
+  const output =
+    typeof outs?.callbackOutput?.then === 'function'
+      ? await outs?.callbackOutput
+      : outs?.callbackOutput;
+  const stdout = outs?.stdout;
+  const stderr = outs?.stderr;
+
+  const embed: Discord.MessageEmbed = new Discord.MessageEmbed()
+    .setFooter({ text: `Execution time: ${end - start}ms` })
+    .setTimestamp();
+
+  if (output) {
+    embed
+      .setTitle(':outbox_tray: Output:')
+      .setDescription(
+        '```js\n' +
+          (
+            (typeof output === 'string' ? output : inspect(output)) ||
+            'undefined'
+          )?.substring(0, 2000) +
+          '```'
+      );
+  }
+
+  if (stdout)
+    embed.addField(
+      ':desktop: stdout',
+      '```js\n' +
+        (
+          (typeof stdout === 'string' ? stdout : inspect(stdout)) || 'undefined'
+        )?.substring(0, 1000) +
+        '```'
+    );
+
+  if (stderr)
+    embed.addField(
+      ':warning: stderr',
+      '```js\n' +
+        (
+          (typeof stderr === 'string' ? stderr : inspect(stderr)) || 'undefined'
+        )?.substring(0, 1000) +
+        '```'
+    );
+
+  if (!embed.fields.length && !embed.description)
+    embed.setTitle('Nothing was returned.');
+
+  if (
+    (stdout && !isError(outs?.callbackOutput)) ||
+    (stdout && !output) ||
+    (!stdout && !output && !stderr)
+  )
+    embed.setColor('GREEN');
+  else if (!stdout && !output && stderr) embed.setColor('YELLOW');
+  else embed.setColor(isError(output) ? 'RED' : 'GREEN');
+
+  embed.addField(
+    ':inbox_tray: Input',
+    '```js\n' + code.substring(0, 1000) + '```'
+  );
+
+  return embed;
+}
+
+function isError(object: object): boolean {
+  const name = object?.constructor?.name;
+  if (!name) return true;
+  return /.*Error$/.test(name);
 }
