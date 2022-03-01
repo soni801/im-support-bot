@@ -27,6 +27,8 @@ export default class Client<
   logger = new Logger(Client.name);
   admins = new Set<string>(['279692618391093248']);
 
+  timeouts: NodeJS.Timeout[] = [];
+
   parser: CommandParser = new CommandParser(this, {
     allowBots: false,
     allowSpaceBeforeCommand: false,
@@ -178,5 +180,88 @@ export default class Client<
     );
 
     await Promise.all(guilds);
+  }
+
+  async getLevel(user: GuildMember) {
+    if (!(user instanceof GuildMember))
+      throw new TypeError('User must be a GuildMember');
+    // user is a bot administrator
+    if (this.admins.has(user.user.id)) return 3;
+    // user has 'ADMINISTRATOR'
+    const owner = await user.guild.fetchOwner();
+
+    if (user.permissions.has('ADMINISTRATOR') || owner.user.id === user.user.id)
+      return 2;
+    // user isnt special
+    return 0;
+  }
+
+  /**
+   * Get missing permissions for the bot and the user
+   * @param {Command} command The command to check for
+   * @param {GuildMember} member The user to check permissions for
+   * @param {TextChannel} channel What channel the command was used in
+   */
+  checkPermissions(
+    command: Command,
+    member: GuildMember,
+    channel?: TextChannel
+  ): { user: Permissions; bot: Permissions } {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const bot = member.guild.me!;
+
+    const userPerms = member.permissions;
+    let botPerms = bot.permissions;
+
+    const requiredPerms = {
+      bot: new Permissions(command.config?.permissions?.bot ?? 0n),
+      user: new Permissions(command.config?.permissions?.user ?? 0n),
+    };
+
+    let channelOverwrites: PermissionOverwrites[] = [];
+    if (channel)
+      channelOverwrites = channel.permissionOverwrites.cache.toJSON();
+
+    for (const permissionOverwrite of channelOverwrites) {
+      if (
+        (permissionOverwrite.type === 'role' &&
+          bot.roles.cache.has(permissionOverwrite.id)) ||
+        (permissionOverwrite.type === 'member' &&
+          bot.id === permissionOverwrite.id)
+      ) {
+        botPerms = botPerms.remove(permissionOverwrite.deny);
+        botPerms = botPerms.add(permissionOverwrite.allow);
+      }
+    }
+
+    const missing = {
+      user: new Permissions(),
+      bot: new Permissions(),
+    };
+
+    if (!userPerms.has(requiredPerms.user))
+      missing.user = new Permissions(userPerms.missing(requiredPerms.user));
+    if (!botPerms.has(requiredPerms.bot))
+      missing.bot = new Permissions(botPerms.missing(requiredPerms.bot));
+
+    return missing;
+  }
+
+  /**
+   * Fetch team members from the client's dev portal team
+   * @returns {Promise<User[]>}
+   * @example
+   * const teamMembers: User[] = await client.fetchTeamMembers()
+   */
+  async fetchTeamMembers(): Promise<User[]> {
+    const { owner } = (await this.application?.fetch()) ?? { owner: null };
+
+    if (owner instanceof Team) {
+      return owner.members.map((t) => t.user);
+    }
+    if (owner instanceof User) {
+      return [owner];
+    }
+    throw new Error('Error fetching team members');
   }
 }

@@ -22,6 +22,7 @@ function exit(..._: any[]) {
   client.destroy();
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   client.db.close().catch(() => {});
+  client.timeouts.map((t) => clearInterval(t));
   console.log('Exited at ' + new Date());
 }
 
