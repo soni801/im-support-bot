@@ -2,9 +2,15 @@ import {
   Client as DiscordClient,
   ClientOptions,
   Collection,
+  GuildMember,
   MessageEmbed,
+  PermissionOverwrites,
+  Permissions,
+  Team,
+  TextChannel,
+  ThreadChannel,
+  User,
 } from 'discord.js';
-import { SlashCommandBuilder } from '@discordjs/builders';
 import { readdir } from 'fs/promises';
 import { basename, resolve } from 'path';
 import { Connection } from 'typeorm';
@@ -15,6 +21,7 @@ import { CONSTANTS } from './config';
 import Logger from './Logger';
 import ormconfig from '../../ormconfig';
 import Guild from '../entities/Guild.entity';
+import { Interaction } from '../types/Interaction';
 
 export default class Client<
   T extends boolean = boolean
@@ -22,7 +29,7 @@ export default class Client<
   commands: Collection<string, Command> = new Collection();
   aliases: Collection<string, string> = new Collection();
 
-  slashCommands: Collection<string, SlashCommandBuilder> = new Collection();
+  slashCommands: Collection<string, Interaction> = new Collection();
 
   logger = new Logger(Client.name);
   admins = new Set<string>(['279692618391093248']);
@@ -36,6 +43,7 @@ export default class Client<
   });
 
   db = new Connection(ormconfig);
+
   constructor(options: ClientOptions) {
     super(options);
 
@@ -140,10 +148,10 @@ export default class Client<
 
       if (!file.endsWith('.js') && !file.endsWith('.ts')) continue;
 
-      const builder = await (await import(filePath)).default();
+      const command: Interaction = new (await import(filePath)).default(this);
 
-      this.slashCommands.set(builder.name, builder);
-      this.logger.debug(`Loaded slash command ${builder.name}`);
+      this.slashCommands.set(command.name, command);
+      this.logger.debug(`Loaded slash command ${command.name}`);
     }
 
     this.logger.info(`Loaded ${this.slashCommands.size} slash commands.`);

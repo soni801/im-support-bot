@@ -41,7 +41,7 @@ export interface CommandOptions {
     usage?: string;
   };
   permissions?: {
-    user?: PermissionResolvable | PermissionResolvable[];
-    bot?: PermissionResolvable | PermissionResolvable[];
+    user?: PermissionResolvable[];
+    bot?: PermissionResolvable[];
   };
 }

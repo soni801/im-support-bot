@@ -1,6 +1,10 @@
 export enum INTERACTION_IDS {
   FAQ_SELECT = 'faq_select',
 
+  SLASH_TICKET_SETUP_CATEGORY = 'slash_ticket_setup_category',
+  SLASH_TICKET_SETUP_CONFIRM = 'slash_ticket_setup_confirm',
+  SLASH_TICKET_SETUP_CANCEL = 'slash_ticket_setup_cancel',
+
   DEPLOY_CONFIRM = 'deploy_confirm',
   DEPLOY_CANCEL = 'deploy_cancel',
   DEPLOY_RESET = 'deploy_reset',
@@ -10,4 +14,7 @@ export enum INTERACTION_IDS {
   CONFIRM_NO = 'confirm_no',
 }
 
-export default INTERACTION_IDS;
+export enum SLASH_COMMANDS {
+  TICKET = 'ticket',
+  FAQ = 'faq',
+}

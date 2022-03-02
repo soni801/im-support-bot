@@ -1,5 +1,6 @@
 import {
   EmbedFieldData,
+  Interaction,
   Message,
   MessageActionRow,
   MessageButton,
@@ -12,7 +13,7 @@ import { Routes } from 'discord-api-types/v9';
 import Command, { CommandOptions } from '../util/Command';
 import Logger from '../util/Logger';
 import { token } from '../util/config';
-import INTERACTION_IDS from '../util/INTERACTION_IDS';
+import { INTERACTION_IDS } from '../util/IDs';
 
 export default class deploy extends Command {
   config: CommandOptions = {
@@ -50,19 +51,31 @@ export default class deploy extends Command {
       .setFields([embedField, warningEmbedField])
       .setTimestamp();
 
-    const slashCommands = this.client.slashCommands.map((builder) => ({
-      label: builder.name,
-      description: builder.description,
-      value: builder.name,
-    }));
+    const slashCommands = await Promise.all(
+      this.client.slashCommands.map(async (command) => {
+        const builder = await command.slashCommand();
+
+        return {
+          label: builder.name,
+          description: builder.description,
+          value: builder.name,
+        };
+      })
+    );
 
     const slashCommandsToDeploy: {
       deploy: boolean;
       command: string;
-    }[] = this.client.slashCommands.map((builder) => ({
-      deploy: false,
-      command: builder.name,
-    }));
+    }[] = await Promise.all(
+      this.client.slashCommands.map(async (command) => {
+        const builder = await command.slashCommand();
+
+        return {
+          deploy: false,
+          command: builder.name,
+        };
+      })
+    );
 
     const actions = [
       new MessageActionRow().addComponents(
@@ -178,8 +191,18 @@ export default class deploy extends Command {
             embed.setDescription('Failed to deploy!').setColor(0xff0000);
           });
       })
-      .catch(() => {
-        embed.setDescription('Deploy cancelled').setFields([]).setColor('RED');
+      .catch((i: Interaction | null) => {
+        if (i instanceof Interaction) {
+          embed
+            .setDescription('Deploy cancelled')
+            .setFields([])
+            .setColor('RED');
+        } else {
+          embed
+            .setDescription('Deploy timed out')
+            .setFields([])
+            .setColor('RED');
+        }
       })
       .finally(() => {
         msg.edit({ embeds: [embed], components: [] });

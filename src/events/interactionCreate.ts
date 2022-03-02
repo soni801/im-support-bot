@@ -1,6 +1,4 @@
 import { Interaction } from 'discord.js';
-import { handleFaqInteraction } from '../slashCommands/faq';
-import { handleTicketInteraction } from '../slashCommands/ticket';
 import { event } from '../types/event';
 import Client from '../util/Client';
 
@@ -13,12 +11,12 @@ const interactionCreate: event<'interactionCreate'> = async (
 
     switch (i.commandName) {
       case 'faq': {
-        await handleFaqInteraction(client, i);
+        await client.slashCommands.get('faq')?.execute(i);
         break;
       }
 
       case 'ticket': {
-        await handleTicketInteraction(client, i);
+        await client.slashCommands.get('ticket')?.execute(i);
         break;
       }
 

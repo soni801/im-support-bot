@@ -7,7 +7,7 @@ let statusIndex = 0;
 
 const ready: event<'ready'> = async (client: Client) => {
   setStatus(client);
-  client.timeouts.push(setInterval(() => setStatus(client), 60 * 1000));
+  client.timeouts.push(setInterval(() => setStatus(client), 5 * 60 * 1000));
 
   const teamMembers: User[] | void = await client
     .fetchTeamMembers()

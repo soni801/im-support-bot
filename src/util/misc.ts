@@ -10,7 +10,7 @@ import { findBestMatch } from 'string-similarity';
 
 import Client from './Client';
 import homoglyphs from '../data/homoglyphs.json';
-import INTERACTION_IDS from './INTERACTION_IDS';
+import { INTERACTION_IDS } from './IDs';
 
 /**
  * Ask for confirmation before proceeding
