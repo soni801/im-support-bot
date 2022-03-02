@@ -7,6 +7,14 @@ export default class restart extends Command {
   config: CommandOptions = {
     name: 'restart',
     aliases: ['reboot'],
+    help: {
+      shortDescription: 'Restarts the bot',
+      description: 'Restarts the bot',
+      usage: '',
+    },
+    permissions: {
+      bot: ['EMBED_LINKS', 'SEND_MESSAGES'],
+    },
     level: 3,
   };
 

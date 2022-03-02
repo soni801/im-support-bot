@@ -11,8 +11,6 @@ export default class shutdown extends Command {
     help: {
       shortDescription: 'Stops the bot',
       description: 'Stops the bot, and exits the process.',
-      hidden: true,
-      category: 'bot admin',
     },
     level: 3,
   };

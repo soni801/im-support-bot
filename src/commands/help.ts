@@ -10,7 +10,6 @@ export default class extends Command {
     help: {
       shortDescription: 'Get a list of commands',
       description: 'Gets a list of commands the current user can run.',
-      category: 'util',
       usage: '[command]',
     },
   };
@@ -113,11 +112,11 @@ export default class extends Command {
 
         if (command.config.permissions.bot)
           description += `\n- Bot permission requirements: ${(
-            command.config.permissions.bot as Array<string>
+            command.config.permissions.bot as string[]
           ).join(', ')}`;
         if (command.config.permissions.user)
           description += `\n- User permission requirements: ${(
-            command.config.permissions.user as Array<string>
+            command.config.permissions.user as string[]
           ).join(', ')}`;
       }
 

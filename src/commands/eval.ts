@@ -24,11 +24,9 @@ export default class extends Command {
     name: 'eval',
     aliases: ['ev'],
     help: {
-      hidden: true,
       shortDescription: 'Evaluates code',
       description:
         'Evaluates code, and returns the result.\nThis command is only available to the bot owner.',
-      category: 'Owner',
       usage: '<code> | ```<code>```',
     },
     level: 3,

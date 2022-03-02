@@ -19,7 +19,8 @@ export default class deploy extends Command {
     name: 'deploy',
     level: 3,
     help: {
-      hidden: true,
+      shortDescription: 'Deploy slash commands',
+      description: 'Deploys slash commands to the server.',
     },
   };
 

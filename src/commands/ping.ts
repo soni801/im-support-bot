@@ -5,12 +5,11 @@ export default class extends Command {
   config: CommandOptions = {
     name: 'ping',
     aliases: ['hello'],
-    permissions: { bot: 'SEND_MESSAGES' },
+    permissions: { bot: ['SEND_MESSAGES'] },
     help: {
       shortDescription: 'Get current bot delay',
       description:
         'Gets the current bot delay. Useful for checking for slowness or discord API errors.',
-      category: 'util',
     },
   };
 

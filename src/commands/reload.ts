@@ -7,6 +7,12 @@ import { confirmation, plural, wrapInlineCode } from '../util/misc';
 export default class extends Command {
   config: CommandOptions = {
     name: 'reload',
+    help: {
+      shortDescription: 'Reloads a command',
+      description:
+        'Reloads a command. This is useful for fixing bugs or updating commands.',
+      usage: '<command|--raw>',
+    },
     level: 3,
   };
 
