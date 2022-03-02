@@ -5,6 +5,7 @@ import { CONSTANTS } from '../util/config';
 import handleBlocklisted from '../util/handleBlocklisted';
 import Logger from '../util/Logger';
 import { replaceHomoglyphs } from '../util/misc';
+import { msgReactionHandle } from '../util/msgReactionHandle';
 
 const messageCreate: event<'messageCreate'> = async (client, msg) => {
   const logger = new Logger(messageCreate.name);
@@ -122,7 +123,8 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
     });
   }
 
-  handleBlocklisted(client, msg);
+  await msgReactionHandle(client, msg);
+  await handleBlocklisted(client, msg);
 };
 
 export default messageCreate;

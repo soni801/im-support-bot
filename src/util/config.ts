@@ -28,7 +28,7 @@ paths.forEach((path) => envConfig({ path }));
 export const token = process.env.DISCORD_TOKEN;
 
 export const CONSTANTS = {
-  PREFIX: '!',
+  PREFIX: '?',
   ERRORS: {
     GENERIC: 'An error has occurred.',
   },
