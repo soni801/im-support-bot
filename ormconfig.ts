@@ -28,6 +28,14 @@ switch (process.env.NODE_ENV) {
 
 paths.forEach((path) => envConfig({ path }));
 
+const entities = process.env.NODE_ENV !== "development"
+                   ? ['dist/**/*.entity.js']
+                   : ['src/**/*.entity.ts'];
+
+const migrations = process.env.NODE_ENV !== "development"
+                   ? ['dist/src/migration/*.js']
+                   : ['src/migration/*.ts'];
+
 let ormConfig: ConnectionOptions = {
   type: 'postgres',
   host: process.env.DB_HOST ?? 'localhost',
@@ -39,8 +47,8 @@ let ormConfig: ConnectionOptions = {
   logging: ['error'],
   namingStrategy: new SnakeNamingStrategy(),
 
-  entities: ['src/**/*.entity.ts', 'dist/**/*.entity.js'],
-  migrations: ['src/migration/**/*.ts', 'dist/migration/**/*.ts'],
+  entities,
+  migrations,
 
   cli: {
     entitiesDir: 'src/entities',

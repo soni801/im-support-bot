@@ -125,6 +125,7 @@ export default class deploy extends Command {
             reject(i);
             break;
           case INTERACTION_IDS.DEPLOY_RESET:
+            console.log(slashCommandsToDeploy);
             slashCommandsToDeploy.forEach((c) => (c.deploy = false));
             embedField.value = 'none';
             break;
@@ -135,6 +136,8 @@ export default class deploy extends Command {
             const command = slashCommandsToDeploy.find(
               (c) => c.command === i.values[0]
             )!;
+
+            console.log(command);
 
             command.deploy = !command.deploy;
 
@@ -163,6 +166,16 @@ export default class deploy extends Command {
       .then(async () => {
         const rest = new REST().setToken(token as string);
 
+        const commands = await Promise.all(
+          this.client.slashCommands
+            .filter(
+              (v) =>
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                slashCommandsToDeploy.find((c) => c.command === v.name)!.deploy
+            )
+            .map(async (v) => await v.slashCommand())
+        );
+
         await rest
           .put(
             Routes.applicationGuildCommands(
@@ -171,12 +184,7 @@ export default class deploy extends Command {
               message.guild!.id
             ),
             {
-              body: this.client.slashCommands.filter(
-                (v) =>
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  slashCommandsToDeploy.find((c) => c.command === v.name)!
-                    .deploy
-              ),
+              body: commands,
             }
           )
           .then((res) => {
@@ -192,6 +200,7 @@ export default class deploy extends Command {
           });
       })
       .catch((i: Interaction | null) => {
+        console.log(i);
         if (i instanceof Interaction) {
           embed
             .setDescription('Deploy cancelled')

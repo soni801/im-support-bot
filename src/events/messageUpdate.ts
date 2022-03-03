@@ -11,8 +11,6 @@ const messageEdit: event<'messageUpdate'> = async (client, oldMsg, newMsg) => {
     newMsg = await newMsg.fetch();
   }
 
-  console.log(oldMsg, newMsg);
-
   if (oldMsg.author.bot) return;
   if (oldMsg.content === newMsg.content) return;
 

@@ -31,7 +31,7 @@ export enum OptionNames {
 export default class SlashFaq implements Interaction {
   client: Client;
   logger = new Logger(SlashFaq.name);
-  name = SlashFaq.name;
+  name = 'faq';
 
   turndownService = new TurndownService();
   fuseOptions: Fuse.IFuseOptions<ApiFaqResponse> = {

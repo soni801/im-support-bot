@@ -42,7 +42,7 @@ export default class SlashTicket implements Interaction {
 
   client: Client;
   logger = new Logger(SlashTicket.name);
-  name = SlashTicket.name;
+  name = 'ticket';
 
   ticketRepository: Repository<Ticket>;
   guildRepository: Repository<Guild>;
