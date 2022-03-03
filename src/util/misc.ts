@@ -132,8 +132,8 @@ export function plural<T = string>(
   singularMessage: T,
   pluralMessage: T
 ): T {
-  if (num > 1) return pluralMessage;
-  return singularMessage;
+  if (num === 1 || num === -1) return singularMessage;
+  return pluralMessage;
 }
 
 /**
