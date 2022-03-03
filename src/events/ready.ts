@@ -42,14 +42,16 @@ function setStatus(client: Client) {
       name: 'yall struggle to code',
     }),
 
-    () => ({
-      type: 'WATCHING',
-      name: `${client.users.cache.size} ${plural(
-        client.users.cache.size,
-        'user',
-        'users'
-      )}`,
-    }),
+    () => {
+      const userCount = client.guilds.cache
+        .toJSON()
+        .reduce((prev, cur) => cur.memberCount + prev, 0);
+
+      return {
+        type: 'WATCHING',
+        name: `${userCount} ${plural(userCount, 'user', 'users')}`,
+      };
+    },
     () => ({
       type: 'WATCHING',
       name: `${client.guilds.cache.size} ${plural(
@@ -73,13 +75,13 @@ function setStatus(client: Client) {
     status: 'online',
   });
 
-  statusIndex = (statusIndex + 1) % statuses.length;
-
   client.logger.verbose(
     `Changing status to ${JSON.stringify(
       statuses[statusIndex % statuses.length]()
     )}`
   );
+
+  statusIndex = (statusIndex + 1) % statuses.length;
 }
 
 export default ready;
