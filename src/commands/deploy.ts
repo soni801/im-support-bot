@@ -125,7 +125,6 @@ export default class deploy extends Command {
             reject(i);
             break;
           case INTERACTION_IDS.DEPLOY_RESET:
-            console.log(slashCommandsToDeploy);
             slashCommandsToDeploy.forEach((c) => (c.deploy = false));
             embedField.value = 'none';
             break;
@@ -136,8 +135,6 @@ export default class deploy extends Command {
             const command = slashCommandsToDeploy.find(
               (c) => c.command === i.values[0]
             )!;
-
-            console.log(command);
 
             command.deploy = !command.deploy;
 
@@ -200,7 +197,6 @@ export default class deploy extends Command {
           });
       })
       .catch((i: Interaction | null) => {
-        console.log(i);
         if (i instanceof Interaction) {
           embed
             .setDescription('Deploy cancelled')
