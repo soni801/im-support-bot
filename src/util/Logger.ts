@@ -1,4 +1,5 @@
 import winston from 'winston';
+import { CONSTANTS } from './config';
 
 export default class Logger {
   name: string;
@@ -7,7 +8,7 @@ export default class Logger {
 
   transports: winston.transport[] = [
     new winston.transports.Console({
-      level: 'debug',
+      level: CONSTANTS.logLevel,
       format: winston.format.combine(
         winston.format.colorize({
           all: true,

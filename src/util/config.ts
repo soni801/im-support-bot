@@ -37,6 +37,7 @@ export const CONSTANTS = {
     warning: 'DARK_RED',
   } as { [key: string]: ColorResolvable },
   wordBlockEnabled: false,
+  logLevel: process.env.LOG_LEVEL || 'debug',
 };
 
 export const clientOptions: ClientOptions = {
