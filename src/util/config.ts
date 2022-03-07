@@ -36,7 +36,7 @@ export const CONSTANTS = {
     default: 'BLURPLE',
     warning: 'DARK_RED',
   } as { [key: string]: ColorResolvable },
-  wordBlockEnabled: false,
+  wordBlockEnabled: process.env.WORD_BLOCK === 'true',
   logLevel: process.env.LOG_LEVEL || 'debug',
 };
 
