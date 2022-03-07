@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_INITDB_ARGS="--locale=en_US.UTF-8"
+    restart: always
+
+  bot:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    env_file:
+      - .env.production.local
+      - .env.production
+    environment: # Overrides whatever's in the .env file
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - DB_NAME=postgres
+    depends_on:
+      - db
