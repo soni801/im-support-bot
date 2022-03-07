@@ -1,180 +1,393 @@
-const { Client, Intents, MessageActionRow, MessageSelectMenu} = require("discord.js");
-//const fs = require("fs");
-const request = require('request');
-const { token } = require("./config.json");
-const homoglyphs = require("./homoglyphs.json");
-const blocklist = require("./blocklist.json");
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { CommandInteraction } from 'discord.js';
+import { nanoid } from 'nanoid';
+import type { Repository } from 'typeorm';
 
-let faq;
-request('https://help.yessness.com/assets/json/faq.json', (e, r, b) =>
-{
-    faq = JSON.parse(b);
-    faq.forEach(e =>
-    {
-        e.label = e.question;
-        e.value = faq.indexOf(e).toString();
+import Guild from '../entities/Guild.entity';
+import { Ticket } from '../entities/Ticket.entity';
+import type { Interaction } from '../types/Interaction';
+import type { StringOptions } from '../types/slashcommand';
+import Client from '../util/Client';
+import Logger from '../util/Logger';
+
+export enum SubcommandNames {
+  create = 'create',
+  list = 'list',
+  view = 'view',
+  edit = 'edit',
+  close = 'close',
+  setup = 'setup',
+}
+
+export enum OptionNames {
+  category = 'category',
+  title = 'title',
+  assignee = 'assignee',
+  subject = 'subject',
+  id = 'id',
+  status = 'status',
+  enabled = 'enabled',
+  reason = 'reason',
+}
+
+export default class SlashTicket implements Interaction {
+  public static ticketCategories: StringOptions[] = [
+    ['HTML', 'html'],
+    ['Styling (CSS)', 'css'],
+    ['JavaScript', 'js'],
+    ['Design', 'design'],
+    ['Other/unspecified', 'other'],
+  ];
+
+  client: Client;
+  logger = new Logger(SlashTicket.name);
+  name = 'ticket';
+
+  ticketRepository: Repository<Ticket>;
+  guildRepository: Repository<Guild>;
+
+  TicketStatus: Record<string, string> = {
+    open: 'open',
+    closed: 'closed',
+  };
+
+  constructor(client: Client) {
+    this.client = client;
+
+    this.ticketRepository = client.db.getRepository(Ticket);
+    this.guildRepository = client.db.getRepository(Guild);
+  }
+
+  public slashCommand = async () =>
+    new SlashCommandBuilder()
+      .setName('ticket')
+      .setDescription('Create, modify, or close a support ticket.')
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName(SubcommandNames.create)
+          .setDescription('Create a support ticket')
+          .addStringOption((input) =>
+            input
+              .setName(OptionNames.subject)
+              .setRequired(true)
+              .setDescription('The subject of the ticket')
+          )
+          .addStringOption((input) =>
+            input
+              .setName(OptionNames.category)
+              .setRequired(true)
+              .setDescription('The category of the ticket')
+              .setChoices(SlashTicket.ticketCategories)
+          )
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName(SubcommandNames.edit)
+          .setDescription('Modify a support ticket')
+          .addStringOption((option) =>
+            option
+              .setName(OptionNames.id)
+              .setDescription('The ID of the ticket to modify')
+              .setRequired(true)
+          )
+          .addStringOption((option) =>
+            option
+              .setName(OptionNames.category)
+              .setDescription('Modify the category of a support ticket')
+              .setChoices(SlashTicket.ticketCategories)
+              .setRequired(false)
+          )
+          .addStringOption((option) =>
+            option
+              .setName(OptionNames.subject)
+              .setDescription('Modify the subject of a support ticket')
+              .setRequired(false)
+          )
+      )
+      .addSubcommand((input) =>
+        input
+          .setName(SubcommandNames.close)
+          .setDescription('Close a support ticket')
+          .addStringOption((input) =>
+            input
+              .setName(OptionNames.id)
+              .setRequired(true)
+              .setDescription('The ID of the ticket to close')
+              .setAutocomplete(true)
+          )
+          .addStringOption((input) =>
+            input
+              .setName(OptionNames.reason)
+              .setDescription('The reason for closing the ticket')
+              .setRequired(false)
+          )
+      )
+      .addSubcommand((input) =>
+        input
+          .setName(SubcommandNames.list)
+          .setDescription('List tickets')
+          .addStringOption((input) =>
+            input.setName(OptionNames.status).setChoices([
+              ['Open', this.TicketStatus.open],
+              ['Closed', this.TicketStatus.closed],
+            ])
+          )
+          .addUserOption((option) =>
+            option
+              .setName(OptionNames.assignee)
+              .setDescription('Filter by assignee')
+          )
+          .addStringOption((input) =>
+            input
+              .setName(OptionNames.category)
+              .setDescription('Filter by category')
+              .setChoices(SlashTicket.ticketCategories)
+          )
+      )
+      .addSubcommand((input) =>
+        input
+          .setName(SubcommandNames.setup)
+          .setDescription('Setup ticket stuff.')
+          .addBooleanOption((option) =>
+            option
+              .setName(OptionNames.enabled)
+              .setDescription('Enable or disable ticket support')
+          )
+      )
+      .addSubcommand((input) =>
+        input
+          .setName(SubcommandNames.view)
+          .setDescription('View a ticket')
+          .addStringOption((input) =>
+            input
+              .setName(OptionNames.id)
+              .setRequired(true)
+              .setDescription('The ID of the ticket to view')
+          )
+      );
+
+  public async execute(i: CommandInteraction) {
+    if (!i.inGuild() || !i.guild) return;
+
+    const subcommand = i.options.getSubcommand();
+
+    let guild = await this.guildRepository.findOne({
+      where: { guildId: i.guild.id },
     });
-});
 
-// Create client
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
-
-function getQuestions(including, parse = false)
-{
-    const response = [];
-    faq.forEach(e => { if (e.question.toLowerCase().includes(including.toLowerCase())) response.push(e); });
-    if (parse)
-    {
-        let parsed = "";
-        if (response.length > 0)
-        {
-            response.forEach(e => parsed += `\u2022 ${e.question}\n`);
-            parsed += "**To get the answer to one of these questions, please use the selection menu under or visit [our website](https://help.yessness.com/faq/). You can also use __/faq get__.**";
-        }
-        else parsed = "No frequently asked questions matched your search.";
-        return parsed;
-    }
-    return response;
-}
-
-function selectMenuWithItems(items)
-{
-    return items.length === 0 ? [] : [
-        new MessageActionRow()
-            .addComponents(
-                new MessageSelectMenu()
-                    .setCustomId("selectQuestion")
-                    .setPlaceholder("Select an answer")
-                    .addOptions(items)
-            )
-    ];
-}
-
-function verifyMessage(message, oldMessage)
-{
-    // Store original message for logging
-    const originalMessage = message.content;
-
-    // Make message lowercase
-    message.content = message.content.toLowerCase();
-
-    // Replace homoglyphs with original letter
-    for (const originalLetter in homoglyphs)
-    {
-        homoglyphs[originalLetter].forEach(substitute =>
-        {
-            const regex = new RegExp(substitute, "g");
-            message.content = message.content.replace(regex, originalLetter);
-        });
+    if (!guild) {
+      guild = await this.guildRepository.save(
+        new Guild({
+          guildId: i.guild.id,
+        })
+      );
     }
 
-    // Remove non-alphanumeric characters from message
-    message.content = message.content.replace(/\W/g, "");
+    if (!guild?.ticketSystemEnabled && subcommand !== 'setup') {
+      i.editReply(
+        'Ticket support is not enabled on this server. Enable it with the /ticket setup command.'
+      );
+      return;
+    }
 
-    // Check if message includes phrase from blocklist
-    blocklist.forEach(e =>
-    {
-        if (message.content.includes(e))
-        {
-            if (message.type === "DEFAULT")
-            {
-                message.delete().then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${message.guild.members.cache.get(message.author.id).displayName}'\x1b[0m (${message.author.username}#${message.author.discriminator}) in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${originalMessage}"\x1b[0m${oldMessage ? " (edited from \x1b[32m\"" + oldMessage.content + "\"\x1b[0m)" : ""}`));
-                message.channel.send({
-                    embeds: [
-                        {
-                            color: 0xbe1d1d,
-                            author: {
-                                name: "Stop, my g",
-                                icon_url: "https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png"
-                            },
-                            fields: [
-                                {
-                                    name: `Do not "${e}" me`,
-                                    value: `I do not approve of this
-                                ${message.author} :woozy_face: :gun:`
-                                }
-                            ],
-                            timestamp: new Date(),
-                            footer: {
-                                text: "2IMITKA Helpdesk Bot"
-                            }
-                        }
-                    ]
-                });
-            }
-            else console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m \x1b[31mFailed to delete message in #${message.channel.name}, ${message.guild.name}: \x1b[32m"${originalMessage}"\x1b[31m - Reason: System message\x1b[0m`);
-        }
+    switch (subcommand) {
+      case SubcommandNames.create:
+        await this.createTicket(i, guild);
+        break;
+      case SubcommandNames.edit:
+        await this.editTicket(i, guild);
+        break;
+      case SubcommandNames.close:
+        await this.closeTicket(i, guild);
+        break;
+      case SubcommandNames.list:
+        await this.listTickets(i, guild);
+        break;
+      case SubcommandNames.setup:
+        await this.setupTicketSystem(i, guild);
+        break;
+      case SubcommandNames.view:
+        await this.viewTicket(i, guild);
+        break;
+      default:
+        i.editReply(`No such subcommand: ${subcommand}`);
+        break;
+    }
+  }
+
+  async createTicket(i: CommandInteraction<'present'>, guild: Guild) {
+    const subject = i.options.getString(OptionNames.subject)!;
+    const category = i.options.getString(OptionNames.category)!;
+
+    const shortId = nanoid(6);
+
+    const channel = await i.guild!.channels.create<'GUILD_TEXT'>(
+      `ticket-${shortId}`,
+      {
+        type: 'GUILD_TEXT',
+        parent: guild.ticketSystemChannelId!,
+      }
+    );
+
+    let ticket = new Ticket({
+      subject,
+      category,
+      guild,
+      userId: i.user.id,
+      channelId: channel.id,
+      shortId,
     });
+
+    ticket = await this.ticketRepository.save(ticket);
+
+    i.editReply(`Created ticket #${ticket.id} in ${channel}`);
+  }
+
+  async editTicket(i: CommandInteraction<'present'>, guild: Guild) {
+    const id = i.options.getString(OptionNames.id)!;
+    const category = i.options.getString(OptionNames.category);
+    const subject = i.options.getString(OptionNames.subject);
+
+    const ticket = await this.ticketRepository.findOne({
+      where: { id, guild },
+    });
+
+    if (!ticket) {
+      i.editReply(`No ticket with ID ${id}`);
+      return;
+    }
+
+    if (category) {
+      ticket.category = category;
+    }
+
+    if (subject) {
+      ticket.subject = subject;
+    }
+
+    await this.ticketRepository.save(ticket);
+
+    i.editReply(`Edited ticket #${ticket.id}`);
+  }
+
+  async closeTicket(i: CommandInteraction<'present'>, guild: Guild) {
+    const id = i.options.getString(OptionNames.id)!;
+    const reason = i.options.getString(OptionNames.reason);
+
+    const ticket = await this.ticketRepository.findOne({
+      where: { id, guild },
+    });
+
+    if (!ticket) {
+      i.editReply(`No ticket with ID ${id}`);
+      return;
+    }
+
+    const channel = await i.guild!.channels.fetch(ticket.channelId);
+
+    channel?.setName(`ticket-${ticket.shortId}-closed`);
+
+    ticket.closedAt = new Date();
+    ticket.closedBy = i.user.id;
+    ticket.closedReason = reason ?? 'No reason provided';
+
+    await this.ticketRepository.save(ticket);
+
+    i.editReply(`Closed ticket #${ticket.id}`);
+  }
+
+  async listTickets(i: CommandInteraction<'present'>, guild: Guild) {
+    const status = i.options.getString(OptionNames.status);
+    const assignee = i.options.getUser(OptionNames.assignee);
+    const category = i.options.getString(OptionNames.category);
+
+    const tickets = await this.ticketRepository.find({
+      where: {
+        guild,
+        status: status ? this.TicketStatus[status] : undefined,
+        assignee: assignee ? assignee.id : undefined,
+        category: category ? category : undefined,
+      },
+    });
+
+    const embed = this.client
+      .defaultEmbed()
+      .setTitle(`Tickets (${tickets.length})`);
+
+    if (tickets.length === 0) {
+      embed.setDescription('No tickets found');
+    } else {
+      embed.setDescription(
+        tickets
+          .map((ticket) => `<#${ticket.id}> - ${ticket.subject}`)
+          .join('\n')
+      );
+    }
+
+    i.editReply({ embeds: [embed] });
+  }
+
+  async setupTicketSystem(i: CommandInteraction<'present'>, guild: Guild) {
+    const enabled = i.options.getBoolean(OptionNames.enabled);
+
+    if (enabled) {
+      const channel = await i.guild!.channels.create<'GUILD_TEXT'>(
+        'ticket-system',
+        {
+          type: 'GUILD_TEXT',
+        }
+      );
+
+      guild.ticketSystemChannelId = channel.id;
+    } else if (enabled === false) {
+      delete guild.ticketSystemChannelId;
+      guild.ticketSystemEnabled = false;
+    }
+
+    await this.guildRepository.save(guild);
+
+    i.editReply(`Ticket system ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  async viewTicket(i: CommandInteraction<'present'>, guild: Guild) {
+    const id = i.options.getString(OptionNames.id)!;
+
+    const ticket = await this.ticketRepository.findOne({
+      where: { id, guild },
+    });
+
+    if (!ticket) {
+      i.editReply(`No ticket with ID ${id}`);
+      return;
+    }
+
+    const channel = await i.guild!.channels.fetch(ticket.channelId);
+
+    if (!channel) {
+      i.editReply(`No channel with ID ${ticket.channelId}`);
+      return;
+    }
+
+    const embed = this.client
+      .defaultEmbed()
+      .setTitle(`Ticket #${ticket.id}`)
+      .setDescription(`${channel}`);
+
+    if (ticket.closedAt) {
+      embed.addField('Closed', `${ticket.closedAt}`);
+      embed.addField('Closed By', `<@${ticket.closedBy}>`);
+      embed.addField('Closed Reason', ticket.closedReason!);
+    }
+
+    i.editReply({ embeds: [embed] });
+  }
 }
 
-client.once("ready", () =>
-{
-    client.user.setActivity("ratios", { type: "LISTENING" });
-    console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Ready!`);
-});
-
-// Delete messages that contain blocked words
-client.on("messageCreate", m => verifyMessage(m));
-client.on("messageUpdate", (old, m) => verifyMessage(m, old));
-
-client.on("interactionCreate", async interaction =>
-{
-    /*if (interaction.isCommand())
+/*if (interaction.isCommand())
     {
         switch (interaction.commandName)
         {
-            case "faq":
-                switch (interaction.options.getSubcommand())
-                {
-                    case "search":
-                        interaction.reply({
-                            embeds: [
-                                {
-                                    color: 0x4cbfc0,
-                                    author: {
-                                        name: "FAQ Search",
-                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
-                                    },
-                                    fields: [
-                                        {
-                                            name: "Questions matching your search:",
-                                            value: getQuestions(interaction.options.getString("query"), true)
-                                        }
-                                    ],
-                                    timestamp: new Date(),
-                                    footer: {
-                                        text: "2IMITKA Helpdesk Bot"
-                                    }
-                                }
-                            ],
-                            components: selectMenuWithItems(getQuestions(interaction.options.getString("query")))
-                        });
-                        break;
-                    case "get":
-                        interaction.reply({ // This WILL break if the deploy script somehow gets an empty faq array
-                            embeds: [
-                                {
-                                    color: 0x4cbfc0,
-                                    author: {
-                                        name: "FAQ Answer",
-                                        icon_url: "https://media.discordapp.net/attachments/877474626710671371/903596754707030026/help_faq.png"
-                                    },
-                                    fields: [
-                                        {
-                                            name: faq[interaction.options.getString("choice")].question,
-                                            value: faq[interaction.options.getString("choice")].answer
-                                        }
-                                    ],
-                                    timestamp: new Date(),
-                                    footer: {
-                                        text: "2IMITKA Helpdesk Bot"
-                                    }
-                                }
-                            ]
-                        });
-                        break;
-                }
-                break;
             case "ticket":
                 switch (interaction.options.getSubcommand())
                 {
@@ -407,7 +620,3 @@ client.on("interactionCreate", async interaction =>
             });
         }
     }*/
-});
-
-// Log in
-client.login(token).then(() => console.log(`\x1b[2m[${new Date().toLocaleString()}]\x1b[0m Logged in`));
