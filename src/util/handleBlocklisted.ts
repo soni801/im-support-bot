@@ -16,7 +16,7 @@ export default async function (client: Client, msg: Message, oldMsg?: Message) {
   if (!handleMsgTypes.includes(msg.type)) return;
 
   if (CONSTANTS.wordBlockEnabled) {
-    msg.content = msg.content.toLowerCase().replace(/[\W]/g, '');
+    msg.content = msg.content.toLowerCase().replace(/[\W ]/g, '');
 
     blocklist.forEach(async (e) => {
       if (msg.content.includes(e)) {

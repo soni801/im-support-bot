@@ -46,14 +46,17 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
 
   if (!parsed.success) {
     switch (parsed.code) {
-      case ErrorCodes.NO_PREFIX:
-      case ErrorCodes.NO_BODY:
       case ErrorCodes.SPACE_BEFORE_COMMAND:
       case ErrorCodes.NO_COMMAND:
       case ErrorCodes.BOT_ACCOUNT:
         if (msg.author.id !== client.user?.id)
           client.logger.debug(parsed.error);
         break;
+
+      case ErrorCodes.NO_PREFIX:
+      case ErrorCodes.NO_BODY:
+        break;
+
       default:
         client.logger.warn(parsed.error);
         break;

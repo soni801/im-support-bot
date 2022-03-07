@@ -10,7 +10,9 @@ const interactionCreate: event<'interactionCreate'> = async (
     client.logger.info(
       `Slash command ${i.commandName} called by ${
         (i.member as GuildMember).user.tag
-      }`
+      } (subcommand?: ${
+        i.options.getSubcommand() || i.options.getSubcommandGroup() || 'none'
+      })`
     );
 
     await i.deferReply({ ephemeral: true });
