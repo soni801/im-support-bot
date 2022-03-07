@@ -50,7 +50,11 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - run: yarn run build
+      - name: Install dependencies
+        run: yarn install --pure-lockfile --no-progress
+
+      - name: Build project
+        run: yarn run build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
