@@ -17,8 +17,8 @@ services:
       dockerfile: Dockerfile
       context: .
     env_file:
-      - .env.production.local
       - .env.production
+      - .env.production.local
     environment: # Overrides whatever's in the .env file
       - DB_HOST=db
       - DB_PORT=5432
