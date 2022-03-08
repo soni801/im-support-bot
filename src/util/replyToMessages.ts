@@ -7,13 +7,17 @@ import respondList from '../data/respondList.json';
 const logger = new Logger(replyToMessages.name);
 
 export async function replyToMessages(client: Client, msg: Message) {
-  const strings: { search: string; response: string; users: string[] }[] =
+  const strings: { search: string[]; response: string; users: string[] }[] =
     respondList;
 
   for (const string of strings) {
     if (!string.users.includes(msg.author.id)) continue;
 
-    if (msg.content.includes(string.search)) {
+    const contains = string.search.some((search) =>
+      msg.content.includes(search)
+    );
+
+    if (contains) {
       await msg.reply(string.response).catch((err: DiscordAPIError) => {
         if (err.code === RESTJSONErrorCodes.UnknownEmoji) {
           // Uknknown emoji
