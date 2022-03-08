@@ -11,6 +11,15 @@ import blocklist from '../data/blocklist.json';
 import respondList from '../data/respondList.json';
 import emojiReactList from '../data/emojiReactList.json';
 
+/**
+ * handles postMessage actions
+ *
+ * @export
+ * @param {Client} client - the client
+ * @param {Message} msg - the message
+ * @param {Message} [oldMsg] - the old message
+ * @return {Promise<void>} the promise
+ */
 export default async function handlePostMessage(
   client: Client,
   msg: Message,
@@ -26,6 +35,13 @@ export default async function handlePostMessage(
   ]);
 }
 
+/**
+ * replies to certain messages from a json file
+ *
+ * @export
+ * @param {Client} client - the client
+ * @param {Message} msg - the message
+ */
 export async function replyToMessages(client: Client, msg: Message) {
   const logger = new Logger(replyToMessages.name);
 
@@ -58,6 +74,13 @@ export async function replyToMessages(client: Client, msg: Message) {
   }
 }
 
+/**
+ * reacts to certain messages
+ *
+ * @export
+ * @param {Client} client - the client
+ * @param {Message} msg - the message
+ */
 export async function msgReactionHandle(client: Client, msg: Message) {
   const logger = new Logger(msgReactionHandle.name);
 
@@ -75,11 +98,20 @@ export async function msgReactionHandle(client: Client, msg: Message) {
   }
 }
 
+/**
+ * Handle blocklisted words
+ *
+ * @export
+ * @param {Client} client - the client
+ * @param {Message} msg - the message
+ * @param {Message} [oldMsg] - an old message if it exists
+ * @return {Promise<boolean>} - whether the message was deleted
+ */
 export async function handleBlocklisted(
   client: Client,
   msg: Message,
   oldMsg?: Message
-) {
+): Promise<boolean> {
   const logger = new Logger(handleBlocklisted.name);
 
   const origMsg = msg.content;
@@ -90,57 +122,61 @@ export async function handleBlocklisted(
 
   if (!CONSTANTS.wordBlockEnabled) return false;
 
-  blocklist.forEach(async (e) => {
-    const re = new RegExp(`^${e}$`, 'g');
+  const deletedStuff = await Promise.all(
+    blocklist.map(async (e) => {
+      const re = new RegExp(`^${e}$`, 'g');
 
-    if (!msg.content.match(re)) return;
+      if (!msg.content.match(re)) return false;
 
-    msg
-      .delete()
-      .then(async () =>
-        logger.info(
-          `Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${
-            msg.author.tag
-          }'\x1b[0m (${msg.author.id} in #${
-            ((await msg.channel.fetch()) as TextChannel).name
-          }, ${msg.guild!.name}: \x1b[32m"${origMsg}"\x1b[0m${
-            oldMsg
-              ? ' (edited from \x1b[32m"' + oldMsg.content + '"\x1b[0m)'
-              : ''
-          }`
+      msg
+        .delete()
+        .then(async () =>
+          logger.info(
+            `Deleted message containing \x1b[31m'${e}'\x1b[0m from \x1b[33m'${
+              msg.author.tag
+            }'\x1b[0m (${msg.author.id} in #${
+              ((await msg.channel.fetch()) as TextChannel).name
+            }, ${msg.guild!.name}: \x1b[32m"${origMsg}"\x1b[0m${
+              oldMsg
+                ? ' (edited from \x1b[32m"' + oldMsg.content + '"\x1b[0m)'
+                : ''
+            }`
+          )
         )
-      )
-      .catch((err) => {
-        logger.warn("Couldn't delete message: ");
-        console.warn(err);
-      });
+        .catch((err) => {
+          logger.warn("Couldn't delete message: ");
+          console.warn(err);
+        });
 
-    const embed = client
-      .defaultEmbed()
-      .setAuthor({
-        name: 'Stop, my g',
-        iconURL:
-          'https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png',
-      })
-      .addField(
-        `Do not "${e} me!`,
-        `I do not approve of this ${msg.author} :woozy_face: :gun:`
-      )
-      .setTimestamp()
-      .setFooter({
-        text: client.user!.tag,
-        iconURL: client.user!.displayAvatarURL(),
-      });
+      const embed = client
+        .defaultEmbed()
+        .setAuthor({
+          name: 'Stop, my g',
+          iconURL:
+            'https://media.discordapp.net/attachments/877474626710671371/903598778827833344/help_stop.png',
+        })
+        .addField(
+          `Do not "${e} me!`,
+          `I do not approve of this ${msg.author} :woozy_face: :gun:`
+        )
+        .setTimestamp()
+        .setFooter({
+          text: client.user!.tag,
+          iconURL: client.user!.displayAvatarURL(),
+        });
 
-    msg.channel
-      .send({
-        embeds: [embed],
-      })
-      .catch((err) => {
-        logger.warn(`Couldn't send message:`);
-        console.warn(err);
-      });
-  });
+      msg.channel
+        .send({
+          embeds: [embed],
+        })
+        .catch((err) => {
+          logger.warn(`Couldn't send message:`);
+          console.warn(err);
+        });
 
-  return true;
+      return true;
+    })
+  );
+
+  return deletedStuff.some((e) => e);
 }
