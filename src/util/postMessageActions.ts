@@ -29,15 +29,21 @@ export default async function handlePostMessage(
 export async function replyToMessages(client: Client, msg: Message) {
   const logger = new Logger(replyToMessages.name);
 
-  const strings: { search: string[]; response: string; users: string[] }[] =
-    respondList;
+  const strings: {
+    search: string[];
+    response: string;
+    users: string[];
+    embedSearch: { image?: string[] };
+  }[] = respondList;
 
   for (const string of strings) {
     if (!string.users.includes(msg.author.id)) continue;
 
-    const contains = string.search.some((search) =>
-      msg.content.includes(search)
-    );
+    const contains =
+      string.search.some((search) => msg.content.includes(search)) ||
+      string.embedSearch?.image?.some((search) =>
+        msg.embeds.some((embed) => embed.image?.url?.includes(search))
+      );
 
     if (contains) {
       await msg.reply(string.response).catch((err: DiscordAPIError) => {
