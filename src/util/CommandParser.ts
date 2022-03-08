@@ -258,7 +258,8 @@ export default class CommandParser {
       }
     }
 
-    if (!matchedPrefix) return fail('Message does not start with prefix', ErrorCodes.NO_PREFIX);
+    if (!matchedPrefix)
+      return fail('Message does not start with prefix', ErrorCodes.NO_PREFIX);
 
     let remaining = message.content.slice(matchedPrefix.length);
 
@@ -269,7 +270,8 @@ export default class CommandParser {
     remaining = remaining.trim();
 
     const command = remaining.match(/^[^\s]+/i)?.[0];
-    if (!command) return fail('Could not match a command', ErrorCodes.NO_COMMAND);
+    if (!command)
+      return fail('Could not match a command', ErrorCodes.NO_COMMAND);
     remaining = remaining.slice(command.length).trim();
 
     const args = getArguments(remaining);

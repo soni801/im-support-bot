@@ -8,7 +8,6 @@ import {
   Permissions,
   Team,
   TextChannel,
-  ThreadChannel,
   User,
 } from 'discord.js';
 import { readdir } from 'fs/promises';
