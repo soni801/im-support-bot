@@ -6,6 +6,7 @@ import handleBlocklisted from '../util/handleBlocklisted';
 import Logger from '../util/Logger';
 import { replaceHomoglyphs } from '../util/misc';
 import { msgReactionHandle } from '../util/msgReactionHandle';
+import { replyToMessages } from '../util/replyToMessages';
 
 const messageCreate: event<'messageCreate'> = async (client, msg) => {
   const logger = new Logger(messageCreate.name);
@@ -126,7 +127,10 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
     });
   }
 
-  await msgReactionHandle(client, msg);
+  await Promise.allSettled([
+    msgReactionHandle(client, msg),
+    replyToMessages(client, msg),
+  ]);
   await handleBlocklisted(client, msg);
 };
 
