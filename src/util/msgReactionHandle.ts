@@ -10,6 +10,12 @@ export async function msgReactionHandle(client: Client, msg: Message) {
     '<:huehueheinz:817122325556101150>',
     ':bread:',
     '🍞',
+    ':sandwich',
+    '🥪',
+    'croissant',
+    '🥐',
+    ':french_bread:',
+    '🥖',
   ];
 
   for (const emoji of emojis) {
