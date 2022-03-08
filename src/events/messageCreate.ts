@@ -2,11 +2,9 @@
 import type { event } from '../types/event';
 import { ErrorCodes } from '../util/CommandParser';
 import { CONSTANTS } from '../util/config';
-import handleBlocklisted from '../util/handleBlocklisted';
 import Logger from '../util/Logger';
 import { replaceHomoglyphs } from '../util/misc';
-import { msgReactionHandle } from '../util/msgReactionHandle';
-import { replyToMessages } from '../util/replyToMessages';
+import handlePostMessage from '../util/postMessageActions';
 
 const messageCreate: event<'messageCreate'> = async (client, msg) => {
   const logger = new Logger(messageCreate.name);
@@ -127,11 +125,7 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
     });
   }
 
-  await Promise.allSettled([
-    msgReactionHandle(client, msg),
-    replyToMessages(client, msg),
-  ]);
-  await handleBlocklisted(client, msg);
+  handlePostMessage(client, msg);
 };
 
 export default messageCreate;

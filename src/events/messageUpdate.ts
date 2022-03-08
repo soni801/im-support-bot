@@ -1,6 +1,5 @@
 import { event } from '../types/event';
-import handleBlocklisted from '../util/handleBlocklisted';
-import { msgReactionHandle } from '../util/msgReactionHandle';
+import handlePostMessage from '../util/postMessageActions';
 
 const messageEdit: event<'messageUpdate'> = async (client, oldMsg, newMsg) => {
   if (oldMsg.partial) {
@@ -14,8 +13,7 @@ const messageEdit: event<'messageUpdate'> = async (client, oldMsg, newMsg) => {
   if (oldMsg.author.bot) return;
   if (oldMsg.content === newMsg.content) return;
 
-  await msgReactionHandle(client, newMsg);
-  await handleBlocklisted(client, newMsg, oldMsg);
+  handlePostMessage(client, newMsg, oldMsg);
 };
 
 export default messageEdit;
