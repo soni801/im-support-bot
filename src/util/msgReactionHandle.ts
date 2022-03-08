@@ -6,7 +6,11 @@ import Logger from './Logger';
 const logger = new Logger(msgReactionHandle.name);
 
 export async function msgReactionHandle(client: Client, msg: Message) {
-  const emojis: string[] = ['<:huehueheinz:817122325556101150>'];
+  const emojis: string[] = [
+    '<:huehueheinz:817122325556101150>',
+    ':bread:',
+    '🍞',
+  ];
 
   for (const emoji of emojis) {
     if (msg.content.includes(emoji)) {
