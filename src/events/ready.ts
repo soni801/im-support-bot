@@ -75,7 +75,7 @@ function setStatus(client: Client) {
     status: 'online',
   });
 
-  client.logger.verbose(
+  client.logger.debug(
     `Changing status to ${JSON.stringify(
       statuses[statusIndex % statuses.length]()
     )}`
