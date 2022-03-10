@@ -25,5 +25,8 @@ services:
       - DB_USER=postgres
       - DB_PASS=postgres
       - DB_NAME=postgres
+      - WEBSERVER_PORT=8080
     depends_on:
       - db
+    ports:
+      - '8080:8080'

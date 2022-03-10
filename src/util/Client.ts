@@ -271,4 +271,17 @@ export default class Client<
     }
     throw new Error('Error fetching team members');
   }
+
+  async getStats() {
+    const guilds = this.guilds.cache.size;
+    const users = this.users.cache.size;
+    const channels = this.channels.cache.size;
+    const slashCommands = this.slashCommands.size;
+    const events = this.eventNames().length;
+    const commands = this.commands.size;
+
+    const wsPing = this.ws.ping;
+
+    return { guilds, users, channels, slashCommands, events, commands, wsPing };
+  }
 }
