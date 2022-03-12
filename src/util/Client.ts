@@ -279,9 +279,19 @@ export default class Client<
     const slashCommands = this.slashCommands.size;
     const events = this.eventNames().length;
     const commands = this.commands.size;
+    const uptime = this.uptime;
 
     const wsPing = this.ws.ping;
 
-    return { guilds, users, channels, slashCommands, events, commands, wsPing };
+    return {
+      guilds,
+      users,
+      channels,
+      slashCommands,
+      events,
+      commands,
+      wsPing,
+      uptime,
+    };
   }
 }
