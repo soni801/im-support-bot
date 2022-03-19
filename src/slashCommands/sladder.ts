@@ -167,6 +167,7 @@ export default class SlashSladder implements Interaction {
   private async list(i: CommandInteraction<CacheType>): Promise<void> {
     const sladders = await this.sladderRepository.find({
       where: { guild: i.guildEntity },
+      order: { id: 'ASC' },
     });
 
     if (sladders.length === 0) {
