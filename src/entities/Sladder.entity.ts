@@ -10,7 +10,7 @@ import Guild from './Guild.entity';
 
 @Entity({ name: 'tbl_sladder' })
 export class Sladder {
-  constructor(partial?: Partial<Sladder>) {
+  constructor(partial?: Partial<Omit<Sladder, 'id'>>) {
     Object.assign(this, partial);
   }
 

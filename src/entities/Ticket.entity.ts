@@ -9,7 +9,7 @@ import Guild from './Guild.entity';
 
 @Entity({ name: 'tbl_ticket' })
 export class Ticket {
-  constructor(partial?: Partial<Ticket>) {
+  constructor(partial?: Partial<Omit<Ticket, 'id'>>) {
     Object.assign(this, partial);
   }
 
