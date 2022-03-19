@@ -20,15 +20,7 @@ export default class Web {
 
     this._client = discordClient;
 
-    this._server.on('request', async (req, res) => {
-      res.writeHead(200, {
-        'Content-Type': 'application/json',
-      });
-
-      const data = { ...(await this._client.getStats()), status: 'ok' };
-
-      res.end(JSON.stringify(data));
-    });
+    this._server.on('request', this.handleReq.bind(this));
 
     this._server.on('listening', () => {
       this._logger.warn('Weberver listening on port ' + this.config.port);
@@ -49,5 +41,49 @@ export default class Web {
 
   public close() {
     this._server.close();
+  }
+
+  private async handleReq(req: http.IncomingMessage, res: http.ServerResponse) {
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; version=0.0.4',
+    });
+
+    const stats = await this._client.getStats();
+
+    // Return data from client in prometheus format
+    const data = `
+# HELP guilds_total Number of guilds the bot is in
+# TYPE guilds_total gauge
+guilds_total ${stats.guilds}
+
+# HELP users_total Number of users the bot is watching
+# TYPE users_total gauge
+users_total ${stats.users}
+
+# HELP channels_total Number of channels the bot is watching
+# TYPE channels_total gauge
+channels_total ${stats.channels}
+
+# HELP slash_commands_total Number of slash commands the bot is watching
+# TYPE slash_commands_total gauge
+slash_commands_total ${stats.slashCommands}
+
+# HELP events_total Number of events the bot is watching
+# TYPE events_total gauge
+events_total ${stats.events}
+
+# HELP commands_total Number of commands the bot is watching
+# TYPE commands_total gauge
+commands_total ${stats.commands}
+
+# HELP ws_ping Websocket ping
+# TYPE ws_ping gauge
+ws_ping ${stats.wsPing}
+
+# HELP uptime Uptime in milliseconds
+# TYPE uptime gauge
+uptime ${stats.uptime}`;
+
+    res.end(data);
   }
 }
