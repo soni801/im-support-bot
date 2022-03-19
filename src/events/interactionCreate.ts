@@ -1,4 +1,5 @@
 import type { GuildMember, Interaction } from 'discord.js';
+import Guild from '../entities/Guild.entity';
 import { event } from '../types/event';
 import Client from '../util/Client';
 
@@ -15,24 +16,29 @@ const interactionCreate: event<'interactionCreate'> = async (
       })`
     );
 
+    let entity = await client.db
+      .getRepository(Guild)
+      .findOne({ where: { guildId: i.guildId } });
+
+    if (!entity) {
+      entity = new Guild({
+        guildId: i.guildId!,
+      });
+
+      await client.db.getRepository(Guild).save(entity);
+    }
+
+    i.guildEntity = entity;
+
+    const command = client.slashCommands.get(i.commandName);
+
     await i.deferReply({ ephemeral: true });
 
-    switch (i.commandName) {
-      case 'faq': {
-        await client.slashCommands.get('faq')?.execute(i);
-        break;
-      }
-
-      case 'ticket': {
-        await client.slashCommands.get('ticket')?.execute(i);
-        break;
-      }
-
-      default: {
-        await i.editReply("Not implemented or doesn't exist.");
-        break;
-      }
+    if (!command) {
+      await i.editReply("Not implemented or doesn't exist.");
     }
+
+    await command!.execute(i);
   }
 };
 

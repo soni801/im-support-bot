@@ -27,7 +27,12 @@
 
     "outDir": "dist",
     "rootDir": ".",
+
+    "typeRoots": ["node_modules/@types", "src/types"]
   },
   "exclude": ["node_modules", "_dev", "dist", "coverage"],
-  "include": ["./src/**/*", "./ormconfig.ts"]
+  "include": ["./src/**/*", "./ormconfig.ts"],
+  "ts-node": {
+    "files": true
+  }
 }
