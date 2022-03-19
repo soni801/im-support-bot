@@ -13,7 +13,7 @@ import Fuse from 'fuse.js';
 import type { ApiFaqResponse } from '../types/faq';
 import type { Interaction } from '../types/Interaction';
 import type { StringOptions } from '../types/slashcommand';
-import { INTERACTION_IDS, SLASH_COMMANDS } from '../util/IDs';
+import { INTERACTION_IDS } from '../util/IDs';
 import Client from '../util/Client';
 import Logger from '../util/Logger';
 
@@ -49,7 +49,7 @@ export default class SlashFaq implements Interaction {
     );
 
     return new SlashCommandBuilder()
-      .setName(SLASH_COMMANDS.FAQ)
+      .setName(this.name)
       .setDescription('Get a list of frequently asked questions.')
       .addSubcommand((subcommand) =>
         subcommand

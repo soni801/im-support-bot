@@ -13,8 +13,3 @@ export enum INTERACTION_IDS {
   CONFIRM_YES = 'confirm_yes',
   CONFIRM_NO = 'confirm_no',
 }
-
-export enum SLASH_COMMANDS {
-  TICKET = 'ticket',
-  FAQ = 'faq',
-}
