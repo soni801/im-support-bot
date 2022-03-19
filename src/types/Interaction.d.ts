@@ -59,5 +59,5 @@ export abstract class Interaction {
    * @return {Promise<void>} Is an async function.
    * @memberof Interaction
    */
-  abstract execute(i: CommandInteraction): Promise<void>;
+  abstract execute(i: CommandInteraction): Promise<any>;
 }
