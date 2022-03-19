@@ -7,6 +7,7 @@ import Guild from '../entities/Guild.entity';
 import { Interaction } from '../types/Interaction';
 import Client from '../util/Client';
 import Logger from '../util/Logger';
+import { CONSTANTS } from '../util/config';
 
 export enum SubcommandNames {
   list = 'list',
@@ -134,7 +135,7 @@ export default class SlashSladder implements Interaction {
 
       default: {
         this.logger.error(`Unknown subcommand: ${i.options.getSubcommand()}`);
-        i.editReply('Unknown subcommand.');
+        i.editReply(CONSTANTS.ERRORS.UNKNOWN_SUBCOMMAND);
       }
     }
   }

@@ -12,7 +12,7 @@ import { Routes } from 'discord-api-types/v9';
 
 import Command, { CommandOptions } from '../util/Command';
 import Logger from '../util/Logger';
-import { token } from '../util/config';
+import { CONSTANTS, token } from '../util/config';
 import { INTERACTION_IDS } from '../util/IDs';
 
 export default class deploy extends Command {
@@ -187,13 +187,15 @@ export default class deploy extends Command {
           .then((res) => {
             embed
               .setDescription('Successfully deployed commands.')
-              .setColor('GREEN')
+              .setColor(CONSTANTS.COLORS.success)
               .setFields([embedField]);
             this.logger.debug(JSON.stringify(res));
           })
           .catch((err) => {
             console.error(err);
-            embed.setDescription('Failed to deploy!').setColor(0xff0000);
+            embed
+              .setDescription(CONSTANTS.ERRORS.DEPLOY_FAILED)
+              .setColor(CONSTANTS.COLORS.error);
           });
       })
       .catch((i: Interaction | null) => {
@@ -201,12 +203,12 @@ export default class deploy extends Command {
           embed
             .setDescription('Deploy cancelled')
             .setFields([])
-            .setColor('RED');
+            .setColor(CONSTANTS.COLORS.error);
         } else {
           embed
             .setDescription('Deploy timed out')
             .setFields([])
-            .setColor('RED');
+            .setColor(CONSTANTS.COLORS.error);
         }
       })
       .finally(() => {

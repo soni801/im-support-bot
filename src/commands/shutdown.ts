@@ -1,5 +1,6 @@
 import { Message } from 'discord.js';
 import Command, { CommandOptions } from '../util/Command';
+import { CONSTANTS } from '../util/config';
 import Logger from '../util/Logger';
 import { confirmation } from '../util/misc';
 
@@ -34,13 +35,11 @@ export default class shutdown extends Command {
 
     if (!conf) return;
 
-    this.logger.error(
-      `Shutdown command used by ${message.author.tag} on ${new Date()}`
-    );
+    this.logger.error(CONSTANTS.ERRORS.SHUTDOWN_USED(message.author));
 
     this.client.destroy();
 
-    this.logger.error('Client destroyed, exiting process...');
+    this.logger.error(CONSTANTS.ERRORS.CLIENT_DESTROY);
     process.exit(0);
   }
 }

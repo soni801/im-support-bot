@@ -12,6 +12,7 @@ import {
 } from '../util/misc';
 import Logger from '../util/Logger';
 import Command, { CommandOptions } from '../util/Command';
+import { CONSTANTS } from '../util/config';
 
 const options = {
   callback: false,
@@ -292,9 +293,13 @@ async function generateEmbed(
     (stdout && !output) ||
     (!stdout && !output && !stderr)
   )
-    embed.setColor('GREEN');
-  else if (!stdout && !output && stderr) embed.setColor('YELLOW');
-  else embed.setColor(isError(output) ? 'RED' : 'GREEN');
+    embed.setColor(CONSTANTS.COLORS.success);
+  else if (!stdout && !output && stderr)
+    embed.setColor(CONSTANTS.COLORS.warning);
+  else
+    embed.setColor(
+      isError(output) ? CONSTANTS.COLORS.error : CONSTANTS.COLORS.success
+    );
 
   embed.addField(
     ':inbox_tray: Input',

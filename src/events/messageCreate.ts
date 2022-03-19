@@ -13,9 +13,7 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
 
   if (!client.db.isConnected) {
     logger.warn('Database not connected, skipping messageCreate');
-    await msg.reply(
-      "I'm not connected to the database, please try again later"
-    );
+    await msg.reply(CONSTANTS.ERRORS.DB_NOT_CONNECTED);
     return;
   }
 
@@ -69,9 +67,7 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if ((cmd.config.level ?? 0) > (await client.getLevel(msg.member!))) {
-      return await msg.reply(
-        ':lock: You do not have permission to use this command.'
-      );
+      return await msg.reply(CONSTANTS.ERRORS.USER_MISSING_PERMS);
     }
 
     const { user, bot } = client.checkPermissions(
@@ -80,9 +76,7 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
       msg.channel.type === 'GUILD_TEXT' ? msg.channel! : undefined
     );
     if (user.toArray().length || bot.toArray().length) {
-      const m: string[] = [
-        ':x: The command could not be preformed because one or more permissions are missing.',
-      ];
+      const m: string[] = [CONSTANTS.ERRORS.BOT_MISSING_PERMS];
 
       if (user.toArray().length)
         m.push(
@@ -107,7 +101,7 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
     }
 
     if (cmd.config.disabled && !client.admins.has(msg.author.id))
-      return await msg.channel.send('🔒 This command has been disabled.');
+      return await msg.channel.send(CONSTANTS.ERRORS.DISABLED);
 
     logger.verbose(
       `Command ${parsed.command} was called by ${msg.author.tag} (${msg.author.id})`
@@ -119,9 +113,7 @@ const messageCreate: event<'messageCreate'> = async (client, msg) => {
       );
       console.error(err);
 
-      msg.reply(
-        `An error occured while running the command, please try again later or contact the bot owner if the problem persists.`
-      );
+      msg.reply(CONSTANTS.ERRORS.COMMAND_RUN_ERROR);
     });
   }
 

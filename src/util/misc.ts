@@ -12,16 +12,31 @@ import Client from './Client';
 import homoglyphs from '../data/homoglyphs.json';
 import { INTERACTION_IDS } from './IDs';
 
+export interface ConfirmationOptions {
+  /** Edit the message after confirming */
+  confirmMessage?: string | MessageEmbed;
+  /** Edit the message after denying */
+  denyMessage?: string | MessageEmbed;
+  /** Delete the message after receiving a reaction */
+  deleteAfter?: boolean;
+  /** Timeout in milliseconds before cancelling */
+  timeout?: number;
+  /** Delete the buttons after usage */
+  deleteButtons?: boolean;
+}
+
 /**
  * Ask for confirmation before proceeding
- * @param {Message} message Discord.js message object
- * @param {string} confirmationMessage Ask for confirmation
- * @param {ConfirmationOptions} [options] Options
- * @param {string} [options.confirmMessage] Edit the message upon confirmation
- * @param {string | MessageEmbed} [options.denyMessage] Edit the message upon denial
- * @param {number} options.time Timeout
- * @param {boolean} [options.keepReactions] Keep reactions after reacting
- * @param {boolean} [options.deleteAfter] Delete the message after reaction (takes priority over all other messages)
+ *
+ * @param {Message} message message to reply to
+ * @param {(string | MessageEmbed)} confirmationMessage message to ask user
+ * @param {ConfirmationOptions} [options={
+ *     deleteAfter: false,
+ *     deleteButtons: false,
+ *     timeout: 10_000,
+ *   }] options for the confirmation
+ * @return {Promise<boolean>}
+ *
  * @example
  * const confirmationMessage: string = 'Are you sure you would like to stop the bot?'
  * const options: ConfirmationOptions = {
@@ -301,19 +316,6 @@ export function matchString(
   if (rating < (ops?.minRating ?? 0.5)) return null;
 
   return mainStrings[bestMatchIndex];
-}
-
-export interface ConfirmationOptions {
-  /** Edit the message after confirming */
-  confirmMessage?: string | MessageEmbed;
-  /** Edit the message after denying */
-  denyMessage?: string | MessageEmbed;
-  /** Delete the message after receiving a reaction */
-  deleteAfter?: boolean;
-  /** Timeout */
-  timeout?: number;
-  /** Keep the reactions upon reacting */
-  deleteButtons?: boolean;
 }
 
 interface MatchStringOptions {
