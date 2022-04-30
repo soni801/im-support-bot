@@ -2,6 +2,7 @@ import type { GuildMember, Interaction } from 'discord.js';
 import Guild from '../entities/Guild.entity';
 import { event } from '../types/event';
 import Client from '../util/Client';
+import { CONSTANTS } from '../util/config';
 
 const interactionCreate: event<'interactionCreate'> = async (
   client: Client,
@@ -34,11 +35,14 @@ const interactionCreate: event<'interactionCreate'> = async (
 
     await i.deferReply({ ephemeral: true });
 
-    if (!command) {
+    if (command) {
+      await command.execute(i).catch((e) => {
+        client.logger.error(e);
+        i.editReply(CONSTANTS.ERRORS.COMMAND_RUN_ERROR);
+      });
+    } else {
       await i.editReply("Not implemented or doesn't exist.");
     }
-
-    await command!.execute(i);
   }
 };
 
