@@ -15,6 +15,7 @@ export enum SubcommandNames {
   search = 'search',
   add = 'add',
   remove = 'remove',
+  getRandom = 'getrandom',
 }
 
 export enum SubcommandArguments {
@@ -85,6 +86,18 @@ export default class SlashQuote implements Interaction {
       )
       .addSubcommand((subcommand) =>
         subcommand
+          .setName(SubcommandNames.getRandom)
+          .setDescription('Get a random quote.')
+          .addBooleanOption((input) =>
+            input
+              .setName(SubcommandArguments.public)
+              .setDescription(
+                'Send the quote to the channel and not just reply to the slash command'
+              )
+          )
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
           .setName(SubcommandNames.add)
           .setDescription('Create a new quote.')
           .addStringOption((input) =>
@@ -138,6 +151,11 @@ export default class SlashQuote implements Interaction {
 
         case SubcommandNames.remove: {
           await this.remove(i);
+          break;
+        }
+
+        case SubcommandNames.getRandom: {
+          await this.getRandom(i);
           break;
         }
 
@@ -261,5 +279,53 @@ export default class SlashQuote implements Interaction {
 
   private async remove(i: CommandInteraction<CacheType>): Promise<void> {
     i.editReply('fuck you ask the mods to remove it');
+  }
+
+  private async getRandom(i: CommandInteraction<CacheType>): Promise<any> {
+    const pub =
+      i.options.getBoolean(SubcommandArguments.public, false) ?? false;
+
+    const quotes = await this.quoteRepository.find({
+      where: { guild: i.guildEntity },
+    });
+
+    if (quotes.length === 0) {
+      return i.editReply('No quotes found.');
+    }
+
+    const quote = quotes[Math.floor(Math.random() * quotes.length)];
+
+    const quoter = this.client.users.cache.get(quote.userId)?.tag;
+    const embed = this.client
+      .defaultEmbed()
+      .setTitle(`Quote \`${quote.id}\``)
+      .setDescription(
+        `${quote.content}
+- <@${quote.quotedUserId}>, <t:${Math.round(
+          quote.createdAt.getTime() / 1000
+        )}:R>`
+      )
+      .setFooter({
+        text: `Called by ${i.user.tag}${quoter ? `, Quoted by ${quoter}` : ''}`,
+        iconURL: i.user.avatarURL() ?? undefined,
+      });
+
+    if (pub) {
+      if (!i.channel) {
+        i.editReply('No channel to send the quote to.');
+        return;
+      }
+
+      i.channel
+        .send({ embeds: [embed] })
+        .then(() => {
+          i.editReply(`Quote sent to channel.`);
+        })
+        .catch(() => {
+          i.editReply(`Failed to send quote to channel.`);
+        });
+    } else {
+      i.editReply({ embeds: [embed] });
+    }
   }
 }
