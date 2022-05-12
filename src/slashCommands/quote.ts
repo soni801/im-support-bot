@@ -218,7 +218,9 @@ export default class SlashQuote implements Interaction {
       .setTitle(`Quote \`${id}\``)
       .setDescription(
         `${quote.content}
-- <@${quote.quotedUserId}>, <t:${quote.createdAt.getUTCSeconds()}:F>`
+- <@${quote.quotedUserId}>, <t:${Math.round(
+          quote.createdAt.getTime() / 1000
+        )}:R>`
       )
       .setFooter({
         text: `Called by ${i.user.tag}${quoter ? `, Quoted by ${quoter}` : ''}`,
