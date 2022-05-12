@@ -9,10 +9,10 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import axios from 'axios';
 import TurndownService from 'turndown';
 import Fuse from 'fuse.js';
+import type { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
 
 import type { ApiFaqResponse } from '../types/faq';
 import type { Interaction } from '../types/Interaction';
-import type { StringOptions } from '../types/slashcommand';
 import { INTERACTION_IDS } from '../util/IDs';
 import Client from '../util/Client';
 import Logger from '../util/Logger';
@@ -44,9 +44,8 @@ export default class SlashFaq implements Interaction {
   }
 
   async slashCommand() {
-    const faqGetChoices: StringOptions[] = await SlashFaq.getFaq().then(
-      (data) => SlashFaq.faqDiscordFormat(data)
-    );
+    const faqGetChoices: APIApplicationCommandOptionChoice<string>[] =
+      await SlashFaq.getFaq().then((data) => SlashFaq.faqDiscordFormat(data));
 
     return new SlashCommandBuilder()
       .setName(this.name)
@@ -65,7 +64,7 @@ export default class SlashFaq implements Interaction {
               .setName(OptionNames.question)
               .setRequired(true)
               .setDescription('The question to get.')
-              .setChoices(faqGetChoices)
+              .setChoices(...faqGetChoices)
           )
       )
       .addSubcommand((subcommand) =>
@@ -113,7 +112,10 @@ export default class SlashFaq implements Interaction {
 
   static faqDiscordFormat(data: ApiFaqResponse[]) {
     return data.map(
-      ({ question }, index): StringOptions => [question, index.toString()]
+      ({ question }, index): APIApplicationCommandOptionChoice<string> => ({
+        name: question,
+        value: index.toString(),
+      })
     );
   }
 

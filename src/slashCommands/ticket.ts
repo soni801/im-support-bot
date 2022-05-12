@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { APIApplicationCommandOptionChoice } from 'discord-api-types/v10';
 import { CommandInteraction } from 'discord.js';
 import { nanoid } from 'nanoid';
 import type { Repository } from 'typeorm';
@@ -32,13 +33,14 @@ export enum OptionNames {
 }
 
 export default class SlashTicket implements Interaction {
-  public static ticketCategories: StringOptions[] = [
-    ['HTML', 'html'],
-    ['Styling (CSS)', 'css'],
-    ['JavaScript', 'js'],
-    ['Design', 'design'],
-    ['Other/unspecified', 'other'],
-  ];
+  public static ticketCategories: APIApplicationCommandOptionChoice<string>[] =
+    [
+      { name: 'HTML', value: 'html' },
+      { name: 'Styling (CSS)', value: 'css' },
+      { name: 'JavaScript', value: 'js' },
+      { name: 'Design', value: 'design' },
+      { name: 'Other/unspecified', value: 'other' },
+    ];
 
   client: Client;
   logger = new Logger(SlashTicket.name);
@@ -78,7 +80,7 @@ export default class SlashTicket implements Interaction {
               .setName(OptionNames.category)
               .setRequired(true)
               .setDescription('The category of the ticket')
-              .setChoices(SlashTicket.ticketCategories)
+              .setChoices(...SlashTicket.ticketCategories)
           )
       )
       .addSubcommand((subcommand) =>
@@ -95,7 +97,7 @@ export default class SlashTicket implements Interaction {
             option
               .setName(OptionNames.category)
               .setDescription('Modify the category of a support ticket')
-              .setChoices(SlashTicket.ticketCategories)
+              .setChoices(...SlashTicket.ticketCategories)
               .setRequired(false)
           )
           .addStringOption((option) =>
@@ -128,10 +130,12 @@ export default class SlashTicket implements Interaction {
           .setName(SubcommandNames.list)
           .setDescription('List tickets')
           .addStringOption((input) =>
-            input.setName(OptionNames.status).setChoices([
-              ['Open', this.TicketStatus.open],
-              ['Closed', this.TicketStatus.closed],
-            ])
+            input
+              .setName(OptionNames.status)
+              .setChoices(
+                { name: 'Open', value: this.TicketStatus.open },
+                { name: 'Closed', value: this.TicketStatus.closed }
+              )
           )
           .addUserOption((option) =>
             option
@@ -142,7 +146,7 @@ export default class SlashTicket implements Interaction {
             input
               .setName(OptionNames.category)
               .setDescription('Filter by category')
-              .setChoices(SlashTicket.ticketCategories)
+              .setChoices(...SlashTicket.ticketCategories)
           )
       )
       .addSubcommand((input) =>
