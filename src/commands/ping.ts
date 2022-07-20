@@ -1,6 +1,32 @@
 import Command, { CommandOptions } from '../util/Command';
 import { EmbedFieldData, Message } from 'discord.js';
 
+// https://stackoverflow.com/a/58826445/9088682
+function timeConversion(duration: number) {
+  const portions: string[] = [];
+
+  const msInHour = 1000 * 60 * 60;
+  const hours = Math.trunc(duration / msInHour);
+  if (hours > 0) {
+    portions.push(hours + 'h');
+    duration = duration - hours * msInHour;
+  }
+
+  const msInMinute = 1000 * 60;
+  const minutes = Math.trunc(duration / msInMinute);
+  if (minutes > 0) {
+    portions.push(minutes + 'm');
+    duration = duration - minutes * msInMinute;
+  }
+
+  const seconds = Math.trunc(duration / 1000);
+  if (seconds > 0) {
+    portions.push(seconds + 's');
+  }
+
+  return portions.join(' ');
+}
+
 export default class extends Command {
   config: CommandOptions = {
     name: 'ping',
@@ -31,7 +57,7 @@ export default class extends Command {
       },
       {
         name: 'Uptime',
-        value: `${statusData.uptime}ms`,
+        value: `${timeConversion(statusData.uptime)}`,
         inline: true,
       },
       {
