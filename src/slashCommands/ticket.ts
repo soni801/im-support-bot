@@ -171,7 +171,7 @@ export default class SlashTicket implements Interaction {
           )
       );
 
-  public async execute(i: CommandInteraction) {
+  public async execute(i: CommandInteraction<'cached'>) {
     if (!i.inGuild() || !i.guild) return;
 
     const subcommand = i.options.getSubcommand();
@@ -220,7 +220,7 @@ export default class SlashTicket implements Interaction {
     }
   }
 
-  async createTicket(i: CommandInteraction<'present'>, guild: Guild) {
+  async createTicket(i: CommandInteraction<'cached'>, guild: Guild) {
     const subject = i.options.getString(OptionNames.subject)!;
     const category = i.options.getString(OptionNames.category)!;
 
@@ -248,7 +248,7 @@ export default class SlashTicket implements Interaction {
     i.editReply(`Created ticket #${ticket.id} in ${channel}`);
   }
 
-  async editTicket(i: CommandInteraction<'present'>, guild: Guild) {
+  async editTicket(i: CommandInteraction<'cached'>, guild: Guild) {
     const id = i.options.getString(OptionNames.id)!;
     const category = i.options.getString(OptionNames.category);
     const subject = i.options.getString(OptionNames.subject);
@@ -275,7 +275,7 @@ export default class SlashTicket implements Interaction {
     i.editReply(`Edited ticket #${ticket.id}`);
   }
 
-  async closeTicket(i: CommandInteraction<'present'>, guild: Guild) {
+  async closeTicket(i: CommandInteraction<'cached'>, guild: Guild) {
     const id = i.options.getString(OptionNames.id)!;
     const reason = i.options.getString(OptionNames.reason);
 
@@ -301,7 +301,7 @@ export default class SlashTicket implements Interaction {
     i.editReply(`Closed ticket #${ticket.id}`);
   }
 
-  async listTickets(i: CommandInteraction<'present'>, guild: Guild) {
+  async listTickets(i: CommandInteraction<'cached'>, guild: Guild) {
     const status = i.options.getString(OptionNames.status);
     const assignee = i.options.getUser(OptionNames.assignee);
     const category = i.options.getString(OptionNames.category);
@@ -332,7 +332,7 @@ export default class SlashTicket implements Interaction {
     i.editReply({ embeds: [embed] });
   }
 
-  async setupTicketSystem(i: CommandInteraction<'present'>, guild: Guild) {
+  async setupTicketSystem(i: CommandInteraction<'cached'>, guild: Guild) {
     const enabled = i.options.getBoolean(OptionNames.enabled);
 
     if (enabled) {
@@ -354,7 +354,7 @@ export default class SlashTicket implements Interaction {
     i.editReply(`Ticket system ${enabled ? 'enabled' : 'disabled'}`);
   }
 
-  async viewTicket(i: CommandInteraction<'present'>, guild: Guild) {
+  async viewTicket(i: CommandInteraction<'cached'>, guild: Guild) {
     const id = i.options.getString(OptionNames.id)!;
 
     const ticket = await this.ticketRepository.findOne({

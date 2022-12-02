@@ -1,6 +1,7 @@
 import type { ClientOptions, ColorResolvable, User } from 'discord.js';
 import { Intents } from 'discord.js';
 import './dotenv';
+import throwIfUndefined from './throwIfUndefined';
 
 export const token = process.env.DISCORD_TOKEN;
 
@@ -32,6 +33,8 @@ export const CONSTANTS = {
   COLORS,
   wordBlockEnabled: process.env.WORD_BLOCK?.toLowerCase() === 'true',
   logLevel: process.env.LOG_LEVEL || 'debug',
+  aocLeaderboardId: parseInt(process.env.AOC_LEADERBOARD_ID!) || 519990,
+  aocSessionCookie: throwIfUndefined(process.env.AOC_SESSION_COOKIE),
 };
 
 export const clientOptions: ClientOptions = {
