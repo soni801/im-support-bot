@@ -1,29 +1,29 @@
-FROM node:17 as builder
+FROM node:18 as builder
 
 ENV NODE_ENV development
 
 WORKDIR /build
 
-COPY yarn.lock yarn.lock
+COPY pnpm-lock.yaml .
 
 RUN apt update && apt upgrade -y && apt install -y \
     g++ \
     cpp \
     python3
 
-COPY package.json package.json
+RUN npm i -g pnpm
 
-RUN yarn install --frozen-lockfile --non-interactive
+COPY package.json .
+
+RUN pnpm install --frozen-lockfile --non-interactive
 
 COPY src /build/src
 
-COPY ormconfig.ts /build/ormconfig.ts
+COPY ormconfig.ts tsconfig.json ./
 
-COPY tsconfig.json /build/tsconfig.json
+RUN pnpm run build
 
-RUN yarn run build
-
-FROM node:17 as app
+FROM node:18 as app
 
 ENV NODE_ENV production
 
@@ -31,8 +31,8 @@ WORKDIR /app
 
 COPY --from=builder /build/dist /app/dist
 COPY --from=builder /build/package.json /app/package.json
-COPY --from=builder /build/yarn.lock /app/yarn.lock
+COPY --from=builder /build/pnpm-lock.yaml .
 
-RUN yarn install --frozen-lockfile --non-interactive
+RUN pnpm install --frozen-lockfile --non-interactive
 
-CMD ["yarn", "run", "start"]
+CMD ["pnpm", "run", "start"]
