@@ -27,6 +27,8 @@ FROM node:18 as app
 
 ENV NODE_ENV production
 
+RUN npm i -g pnpm
+
 WORKDIR /app
 
 COPY --from=builder /build/dist /app/dist
