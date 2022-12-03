@@ -33,6 +33,6 @@ COPY --from=builder /build/dist /app/dist
 COPY --from=builder /build/package.json /app/package.json
 COPY --from=builder /build/pnpm-lock.yaml .
 
-RUN pnpm install --frozen-lockfile --non-interactive
+RUN pnpm install --frozen-lockfile
 
 CMD ["pnpm", "run", "start"]
