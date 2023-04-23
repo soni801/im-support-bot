@@ -9,7 +9,6 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^5.23.0
   '@typescript-eslint/parser': ^5.23.0
   axios: ^0.27.2
-  bufferutil: ^4.0.6
   chalk: ^4
   cross-env: ^7.0.3
   discord-api-types: ^0.32.1
@@ -43,7 +42,7 @@ dependencies:
   chalk: 4.1.2
   cross-env: 7.0.3
   discord-api-types: 0.32.1
-  discord.js: 13.12.0_22kvxa7zeyivx4jp72v2w3pkvy
+  discord.js: 13.12.0_utf-8-validate@5.0.9
   dotenv: 16.0.1
   fuse.js: 6.6.2
   nanoid: 3.3.4
@@ -55,7 +54,6 @@ dependencies:
   winston: 3.8.1
 
 optionalDependencies:
-  bufferutil: 4.0.6
   erlpack: 0.1.4
   utf-8-validate: 5.0.9
   zlib-sync: 0.1.7
@@ -556,14 +554,6 @@ packages:
       ieee754: 1.2.1
     dev: false
 
-  /bufferutil/4.0.6:
-    resolution: {integrity: sha512-jduaYOYtnio4aIAyc6UbvPCVcgq7nYpVnucyxr6eCYg/Woad9Hf/oxxBRDnGGjPfjUm6j5O/uBWhIu4iLebFaw==}
-    engines: {node: '>=6.14.2'}
-    requiresBuild: true
-    dependencies:
-      node-gyp-build: 4.5.0
-    dev: false
-
   /callsites/3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
@@ -746,7 +736,7 @@ packages:
     resolution: {integrity: sha512-bz/NDyG0KBo/tY14vSkrwQ/n3HKPf87a0WFW/1M9+tXYK+vp5Z5EksawfCWo2zkAc6o7CClc0eff1Pjrqznlwg==}
     dev: false
 
-  /discord.js/13.12.0_22kvxa7zeyivx4jp72v2w3pkvy:
+  /discord.js/13.12.0_utf-8-validate@5.0.9:
     resolution: {integrity: sha512-K5qhREsYcTHkEqt7+7LcSoXTeQYZpI+SQRs9ei/FhbhUpirmjqFtN99P8W2mrKUyhhy7WXWm7rnna0AooKtIpw==}
     engines: {node: '>=16.6.0', npm: '>=7.0.0'}
     dependencies:
@@ -758,7 +748,7 @@ packages:
       discord-api-types: 0.33.5
       form-data: 4.0.0
       node-fetch: 2.6.7
-      ws: 8.11.0_22kvxa7zeyivx4jp72v2w3pkvy
+      ws: 8.11.0_utf-8-validate@5.0.9
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -2094,7 +2084,7 @@ packages:
   /wrappy/1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  /ws/8.11.0_22kvxa7zeyivx4jp72v2w3pkvy:
+  /ws/8.11.0_utf-8-validate@5.0.9:
     resolution: {integrity: sha512-HPG3wQd9sNQoT9xHyNCXoDUa+Xw/VevmY9FoHyQ+g+rrMn4j6FB4np7Z0OhdTgjx6MgQLK7jwSy1YecU1+4Asg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
@@ -2106,7 +2096,6 @@ packages:
       utf-8-validate:
         optional: true
     dependencies:
-      bufferutil: 4.0.6
       utf-8-validate: 5.0.9
     dev: false
 
