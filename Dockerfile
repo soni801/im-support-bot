@@ -15,7 +15,7 @@ RUN npm i -g pnpm
 
 COPY package.json .
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 COPY src /build/src
 
